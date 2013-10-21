@@ -14,6 +14,14 @@
 #include <assert.h>
 #include <xscope.h>
 
+#ifndef CLOCKS_PER_CHANNEL
+#define CLOCKS_PER_CHANNEL 32
+#endif
+
+#ifndef TDM_NUM_CHANNELS
+#define TDM_NUM_CHANNELS 8
+#endif
+
 // Each sample will be right aligned, with left 32-RESOLUTION bits zeroed out
 // This exactly matches the 1722 packet format
 #define RESOLUTION 24

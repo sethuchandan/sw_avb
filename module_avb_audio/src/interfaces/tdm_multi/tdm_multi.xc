@@ -4,7 +4,7 @@
 #include "media_input_fifo.h"
 #include "media_fifo.h"
 
-static void tdm_loopback_aux(
+static void tdm_mulit_loopback_aux(
         clock mclk, in port p_mck, out port p_bclk,
         out buffered port:4 p_wclk,
         in buffered port:32 p_din, out buffered port:32 p_dout,
@@ -50,13 +50,13 @@ static void tdm_loopback_aux(
 }
 
 
-void tdm_loopback(  clock mclk, in port p_mck, out port p_bclk,
+void tdm_mulit_loopback(  clock mclk, in port p_mck, out port p_bclk,
         out buffered port:4 p_wclk,
         in buffered port:32 p_din, out buffered port:32 p_dout)
 {
     streaming chan c_adc, c_dac;
     par {
-        tdm_loopback_aux(mclk, p_mck, p_bclk, p_wclk, p_din, p_dout, c_adc, c_dac);
+        tdm_mulit_loopback_aux(mclk, p_mck, p_bclk, p_wclk, p_din, p_dout, c_adc, c_dac);
         {
             unsigned x[6];
             int padc = 5;

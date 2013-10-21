@@ -7735,7 +7735,7 @@
 					<folderInfo id="com.xmos.cdt.toolchain.71094488.241406206.930334836." name="/" resourcePath="">
 						<toolChain id="com.xmos.cdt.toolchain.1838170305" name="com.xmos.cdt.toolchain" superClass="com.xmos.cdt.toolchain">
 							<targetPlatform archList="all" binaryParser="com.xmos.cdt.core.XEBinaryParser" id="com.xmos.cdt.core.platform.1117182585" isAbstract="false" osList="linux,win32,macosx" superClass="com.xmos.cdt.core.platform"/>
-							<builder arguments="CONFIG=1t1s16ch_TDM" id="com.xmos.cdt.builder.base.772675265" keepEnvironmentInBuildfile="false" managedBuildOn="false" superClass="com.xmos.cdt.builder.base">
+							<builder arguments="CONFIG=1t1s16ch_TDM" buildPath="${workspace_loc:/app_configs}" id="com.xmos.cdt.builder.base.772675265" keepEnvironmentInBuildfile="false" managedBuildOn="false" superClass="com.xmos.cdt.builder.base">
 								<outputEntries>
 									<entry flags="VALUE_WORKSPACE_PATH" kind="outputPath" name="bin"/>
 								</outputEntries>

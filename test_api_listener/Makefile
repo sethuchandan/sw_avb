@@ -13,7 +13,7 @@ APP_NAME =
 # global debug switches
 #
 XSCOPE = 1
-VERBOSE= 1
+VERBOSE= 0
 
 # Settings derived from configuration names
 #
