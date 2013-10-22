@@ -12,3 +12,4 @@
 MODULE_XCC_FLAGS = $(XCC_FLAGS) -O3
 
 XCC_FLAGS_media_clock_server.xc = $(XCC_FLAGS) -O3 -fsubword-select
+XCC_FLAGS_media_clock_support.c = -Os

@@ -15,11 +15,15 @@ typedef struct avb_1722_1_packet_header_t {
 #define AVB_1722_1_PACKET_BODY_POINTER_OFFSET 	1	// sizeof(avb_1722_1_packet_header_t) = 4 bytes
 
 typedef union {
-#ifndef __XC__
 	unsigned long long l;
-#endif
 	unsigned char c[8];
 } guid_t, stream_t, gmid_t;
+
+#ifndef __XC__
+typedef const guid_t * const const_guid_ref_t;
+#else
+typedef const guid_t & const_guid_ref_t;
+#endif
 
 #define DEFAULT_1722_1_CD_FLAG (1)
 #define DEFAULT_1722_1_AVB_VERSION (0x0)

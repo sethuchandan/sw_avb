@@ -13,8 +13,8 @@ static chanend avb_1722_links[MAX_AVB_1722_ROUTER_LINKS] = {0, 1, 2, 3};
 void avb_1722_register_routes(chanend link0,
                              chanend link1,
                              chanend link2,
-                             chanend link3, 
-                             int num_clients) 
+                             chanend link3,
+                             int num_clients)
 {
   if (num_clients >= 1)
     avb_1722_links[0] = link0;
@@ -23,8 +23,7 @@ void avb_1722_register_routes(chanend link0,
   if (num_clients >= 3)
     avb_1722_links[2] = link2;
   if (num_clients >= 4)
-    avb_1722_links[3] = link3;  
-  return;
+    avb_1722_links[3] = link3;
 }
 
 
@@ -42,21 +41,21 @@ int avb_1722_add_stream_mapping(chanend c_tx,
                                 int sink_local_id)
 {
   unsigned char *s = (unsigned char *) streamId;
-  int key0 = 
+  int key0 =
         (s[3] << 0)  |
         (s[2] << 8)  |
-        (s[5] << 16) | 
-        (s[4] << 24); 
-  int key1 = 
+        (s[5] << 16) |
+        (s[4] << 24);
+  int key1 =
         (s[1] << 0)  |
         (s[0] << 8)  |
-        (s[7] << 16) | 
-        (s[6] << 24);    
+        (s[7] << 16) |
+        (s[6] << 24);
 
-  send_avb_1722_router_cmd(c_tx, 
-                           key0, 
-                           key1, 
-                           avb_1722_links[link_num], 
+  send_avb_1722_router_cmd(c_tx,
+                           key0,
+                           key1,
+                           avb_1722_links[link_num],
                            avb_hash,
                            sink_local_id);
 
@@ -68,18 +67,18 @@ int avb_1722_disconnect_stream_mapping(chanend c_tx,
                                        unsigned int streamId[2])
 {
   unsigned char *s = (unsigned char *) streamId;
-  int key0 = 
+  int key0 =
         (s[3] << 0)  |
         (s[2] << 8)  |
-        (s[5] << 16) | 
-        (s[4] << 24); 
-  int key1 = 
+        (s[5] << 16) |
+        (s[4] << 24);
+  int key1 =
         (s[1] << 0)  |
         (s[0] << 8)  |
-        (s[7] << 16) | 
-        (s[6] << 24);    
+        (s[7] << 16) |
+        (s[6] << 24);
 
-  
+
   send_avb_1722_router_cmd(c_tx,
                            key0,
                            key1,

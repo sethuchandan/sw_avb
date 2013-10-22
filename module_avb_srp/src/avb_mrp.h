@@ -2,6 +2,10 @@
 #ifndef _avb_mrp_h_
 #define _avb_mrp_h_
 #include "avb_control_types.h"
+#ifdef __avb_conf_h_exist__
+#include "avb_conf.h"
+#endif
+
 #ifdef __mrp_conf_h_exist__
 #include "mrp_conf.h"
 #endif
@@ -24,8 +28,13 @@
 #ifndef MRP_MAX_ATTRS
 // There are 3 attributes per stream (talker_advertise, talker_failed
 // and listener). Therefore the number of attributes needed is:
+<<<<<<< HEAD
 // (AVB_NUM_SOURCES * 3) + (AVB_NUM_SINKS * 3) + (nDomains=1) + AVB_MAX_NUM_VLAN + AVB_MAX_MMRP_GROUPS
 #define MRP_MAX_ATTRS 60
+=======
+// (nTalkers * 3) + (nListeners * 3) + (nDomains=1) + AVB_MAX_NUM_VLAN + AVB_MAX_MMRP_GROUPS
+#define MRP_MAX_ATTRS ((3*(AVB_NUM_SOURCES)) + (3*(AVB_NUM_SINKS)) + 1 + (AVB_MAX_NUM_VLAN))
+>>>>>>> c9571f7ba9113648c12534912010302e18e3892e
 #endif
 
 #define MRP_FULL_PARTICIPANT 1
@@ -33,7 +42,7 @@
 
 typedef enum {
   MRP_UNUSED,
-  MRP_DISABLED,  
+  MRP_DISABLED,
   MRP_VO, // Very anxious Observer
   MRP_VP, // Very anxious Passive
   MRP_VN, // Very anxious New
@@ -157,9 +166,9 @@ typedef struct mrp_attribute_state {
 
 /** Function: mrp_init
 
-   This function initializes the MRP state machines. It just 
+   This function initializes the MRP state machines. It just
    needs to be called once at the start of the program.
-*/      
+*/
 void mrp_init(char macaddr[]);
 
 /** Function: mrp_attribute_init
@@ -187,7 +196,7 @@ void mrp_attribute_init(mrp_attribute_state *st,
    the state table and descriptions in IEEE802.1ak 10.7.
 
    \param st the attribute
-   
+
 */
 void mrp_mad_begin(mrp_attribute_state *st);
 
@@ -210,20 +219,20 @@ void mrp_mad_join(mrp_attribute_state *st, int new);
    state machines transition as if the Leave! event has occurred (see IEEE802.1ak 10.7)
 
    \param st The attribute to leave
-   
+
 */
 void mrp_mad_leave(mrp_attribute_state *st);
 
 /** Function: mrp_periodic
 
-   This function performs periodic MRP processing. It must be called 
+   This function performs periodic MRP processing. It must be called
    approximately 4 times a second.
 
    See also:
-   
+
        mrp_init
  */
-avb_status_t mrp_periodic();
+void mrp_periodic(void);
 
 int mrp_is_observer(mrp_attribute_state *st);
 
@@ -239,7 +248,7 @@ void mrp_encode_four_packed_event(char *buf,
 mrp_attribute_state *mrp_get_attr(void);
 #endif
 
-avb_status_t avb_mrp_process_packet(unsigned int buf[], int len);
+void avb_mrp_process_packet(unsigned char buf[], int etype, int len);
 
 void avb_mrp_set_legacy_mode(int mode);
 

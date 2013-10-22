@@ -42,46 +42,42 @@
 #define CODEC_MUTEC						(0x1b)
 
 
-unsigned REGWR(unsigned reg, unsigned val, struct r_i2c &r_i2c)
+static unsigned REGWR(unsigned reg, unsigned val,
+                  #if I2C_COMBINE_SCL_SDA
+                     port r_i2c
+                  #else
+                     struct r_i2c &r_i2c
+                  #endif
+                     )
 {
-	struct i2c_data_info data;
-	data.master_num = 0;
-	data.data_len = 1;
-	data.clock_mul = 5;
-	data.data[0] = val;
+  unsigned char data[1];
+	data[0] = val;
 
-	return i2c_master_tx(DEVICE_ADRS, reg, data, r_i2c);
-}
-
-unsigned int REGRD(unsigned reg, struct r_i2c &r_i2c)
-{
-	struct i2c_data_info data;
-	data.master_num = 0;
-	data.data_len = 1;
-	data.clock_mul = 1;
-
-	i2c_master_rx(DEVICE_ADRS, reg, data, r_i2c);
-	return data.data[0];
+	return i2c_master_write_reg(DEVICE_ADRS, reg, data, 1, r_i2c);
 }
 
 static const char error_msg[] = "CS42448 Config Failed";
 
-void audio_codec_CS42448_init(out port AUD_RESET_N, 
-                              struct r_i2c &r_i2c,
-                              int mode) 
+void audio_codec_CS42448_init(out port p_reset,
+                           #if I2C_COMBINE_SCL_SDA
+                               port r_i2c
+                           #else
+                               struct r_i2c &r_i2c
+                           #endif
+                              ,int mode)
 {
    timer t;
    unsigned int time;
    unsigned res = 1;
-   
+
    i2c_master_init(r_i2c);
 
    // Reset the codec
-   AUD_RESET_N <: 0;
+   p_reset <: 0;
    t :> time;
    t when timerafter(time + 100000) :> time;
-   AUD_RESET_N <: 1;
-   
+   p_reset <: 1;
+
    if (mode == CODEC_TDM) {
 	   // DAC_FM = 0 (single speed)
 	   // ADC_FM = 0 (single speed)
@@ -91,7 +87,7 @@ void audio_codec_CS42448_init(out port AUD_RESET_N,
 	   // Default to I2S
 	   res = REGWR(CODEC_FUNCTIONAL_MODE, 0b00000100, r_i2c);
    }
-   
+
    if (res == 0) {
 	   printstr(error_msg);
 	   return;
@@ -107,7 +103,7 @@ void audio_codec_CS42448_init(out port AUD_RESET_N,
 	   // Left justified for DAC and ADC
 	   res = REGWR(CODEC_INTERFACE_FORMATS, 0b00000000, r_i2c);
    }
-   
+
    if (res == 0) {
 	   printstr(error_msg);
 	   return;

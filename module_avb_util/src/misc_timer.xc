@@ -1,5 +1,4 @@
 #include <xs1.h>
-#include "swlock.h"
 #include "misc_timer.h"
 
 #define TICKS_PER_CENTISECOND (XS1_TIMER_KHZ * 10)
@@ -17,7 +16,6 @@ void waitfor(unsigned t)
 {
   timer tmr;
   tmr when timerafter(t) :> void;
-   return;
 }
 
 

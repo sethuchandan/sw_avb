@@ -1,60 +1,43 @@
 AVB Software Stack
 ..................
 
-:Latest release: 5.1.2rc2
-:Maintainer: ajwlucas
+:Latest release: 5.2.1rc1
+:Maintainer: XMOS
 :Description: AVB software stack
-
-
-
 
 
 Key Features
 ============
 
-* 1722 Packet listener and talker
-* 1722 MAAP multicast reservation protocol
-* MRP,MMRP,MVRP,SRP 802.1 protocols
-* PTP server and protocol
+* 1722 Talker and Listener (simultaneous) support
+* 1722 MAAP support for Talkers
+* 802.1Q MRP, MMRP, MVRP, SRP protocols
+* gPTP server and protocol
 * Audio interface for I2S and TDM
-* Clock recovery and interface to PLL clock source
-* Support for 1722.1 ADP and ACMP draft D15A
+* Media clock recovery and interface to PLL clock source
+* Support for 1722.1 AVDECC: ADP, AECP (AEM) and ACMP
 
 Firmware Overview
 =================
 
-This is an implementation of the AVB transport stream protocol carrying audio data. It includes a PTP time
-server to provide a stable wallclock reference and clock recovery to synchronize listener audio to talker audio
-codecs.  It also includes implementations of the Stream Reservation Protocol for conveying AVB stream reservation
-information through 802.1 network infrastructure.
+This firmware is a reference endpoint implementation of Audio Video Bridging protocols for XMOS silicon. It includes a PTP time
+server to provide a stable wallclock reference and clock recovery to synchronise listener audio to talker audio
+codecs. The Stream Reservation Protocol is used to reserve bandwidth through 802.1 network infrastructure.
 
 Known Issues
 ============
 
-* The listener does not respond to the withdrawal of a talker advertise message
-
 Support
 =======
 
-Supported by XMOS Ltd.
+The HEAD of this repository is a work in progress. It may or may not compile from time to time, and modules, code and features may be incomplete. For a stable, supported release please see the reference designs section at www.xmos.com.
 
 Required software (dependencies)
 ================================
 
-  * sc_xlog
-  * sc_i2c
-  * sc_xtcp
-  * xcommon (if using development tools earlier than 11.11.0)
-  * sc_ethernet
-
-To clone (read only):
-
-::
-
-  git clone git://github.com/xcore/sw_avb.git
-  git clone git://github.com/xcore/sc_ethernet.git
-  git clone git://github.com/xcore/sc_xtcp.git
-  git clone git://github.com/xcore/sc_xlog.git
-  git clone git://github.com/xcore/sc_i2c.git
-  git clone git://github.com/xcore/xcommon.git
+  * sc_i2c (https://github.com/xcore/sc_i2c.git)
+  * sc_util (git@github.com:xcore/sc_util)
+  * sc_slicekit_support (origin)
+  * sc_otp (git@github.com:xcore/sc_otp)
+  * sc_ethernet (https://github.com/xcore/sc_ethernet.git)
 

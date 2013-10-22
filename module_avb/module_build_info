@@ -1,12 +1,8 @@
-AVB_COMMON_SOURCE_DIRS = src
+DEPENDENT_MODULES = module_ethernet module_otp_board_info
 
-SOURCE_DIRS += $(AVB_COMMON_SOURCE_DIRS) 
-INCLUDE_DIRS += $(AVB_COMMON_SOURCE_DIRS)
+# This setting is in this module due to a bug in the 12.0
+# xTIMEcomposer tools that means optional headers cannot be set in the
+# application Makefile
+OPTIONAL_HEADERS = avb_app_board_config.h
 
-
-
-ifeq ($(USE_AVB_MAC_CUSTOM_FILTER),1)
-INCLUDE_DIRS += src/mac_custom_filter
-SOURCE_DIRS += src/mac_custom_filter
-endif
 

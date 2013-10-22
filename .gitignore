@@ -1,5 +1,8 @@
-*/.build*/*
-*/bin/*
+**/.build*/*
+bin/
+_build/
+.build/
+*.*.orig
 *.o
 *.xe
 *.vcd
@@ -11,13 +14,14 @@
 *.vcd
 *.log
 *.xe
-doc/*/_build/*
+doc/_build/*
 doc/*/.doxygen/*
 doc/*/.linked_dirs/*
 doc/*/.sources/*
 doc/*/.support/*
+*/.settings/*
 Doxyfile-e
 .DS_Store
 *.pyc
-*.pdf
 *.xmt
+*.zip

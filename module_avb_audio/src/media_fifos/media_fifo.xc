@@ -3,14 +3,18 @@
 #include "get_core_id_from_chanend.h"
 
 void media_ctl_register(chanend media_ctl,
-                        int num_in, 
-                        media_input_fifo_t ?input_fifos[], 
-                        int num_out, 
+                        int num_in,
+                        media_input_fifo_t ?input_fifos[],
+                        int num_out,
                         media_output_fifo_t ?output_fifos[],
                         int clk_ctl_index)
 {
   unsigned core_id;
+<<<<<<< HEAD
   core_id = get_core_id_from_chanend(media_ctl);
+=======
+  core_id = get_local_tile_id();
+>>>>>>> c9571f7ba9113648c12534912010302e18e3892e
   media_ctl <: core_id;
   media_ctl <: clk_ctl_index;
   media_ctl <: num_in;
@@ -28,7 +32,5 @@ void media_ctl_register(chanend media_ctl,
 
     media_output_fifo_init(output_fifos[i], stream_num);
   }
-
-  return;
 }
 

@@ -1,5 +1,7 @@
 #include <avb_conf.h>
 #include <stdlib.h>
+#include "avb.h"
+#include <print.h>
 #ifndef AVB_STREAM_DETECT_HISTORY_SIZE
 #define AVB_STREAM_DETECT_HISTORY_SIZE (AVB_NUM_SINKS*4)
 #endif
@@ -15,15 +17,26 @@ static struct stream_info stream_history[AVB_STREAM_DETECT_HISTORY_SIZE];
 static int rdPtr=0;
 static int wrPtr = 0;
 
-void avb_add_detected_stream(unsigned streamId[2], 
+void avb_add_detected_stream(unsigned streamId[2],
                              unsigned vlan,
                              unsigned char addr[6],
                              int addr_offset)
-{  
+{
   int found = 0;
+  unsigned int my_stream_id[2];
 
   if (AVB_STREAM_DETECT_HISTORY_SIZE == 0)
     return;
+
+  for(int i=0;i<AVB_NUM_SOURCES;i++)
+  {
+    get_avb_source_id(i, my_stream_id);
+
+    // Detect if we are trying to add our own talker stream
+    if (my_stream_id[0] == streamId[0] && my_stream_id[1] == streamId[1]) {
+      return;
+    }
+  }
 
   for(int i=0;i<AVB_STREAM_DETECT_HISTORY_SIZE;i++)
     if (streamId[0] == stream_history[i].id[0] &&
@@ -42,15 +55,15 @@ void avb_add_detected_stream(unsigned streamId[2],
       if (rdPtr==AVB_STREAM_DETECT_HISTORY_SIZE)
         rdPtr = 0;
     }
-    
+
     stream_history[wrPtr].id[0] = streamId[0];
     stream_history[wrPtr].id[1] = streamId[1];
     stream_history[wrPtr].vlan = vlan;
-    
+
     if (addr != NULL) {
       unsigned long long x;
-      
-      for(int i=0;i<6;i++) 
+
+      for(int i=0;i<6;i++)
         x = (x<<8) + addr[i];
 
       x += addr_offset;
@@ -60,14 +73,13 @@ void avb_add_detected_stream(unsigned streamId[2],
         x>>=8;
       }
     }
-    else
+    else {
       for(int i=0;i<6;i++)
         stream_history[wrPtr].addr[i] = 0;
-      
+    }
+
     wrPtr = new_wrPtr;
   }
-  
-  return;
 }
 
 int avb_check_for_new_stream(unsigned streamId[2], unsigned *vlan,
@@ -84,7 +96,7 @@ int avb_check_for_new_stream(unsigned streamId[2], unsigned *vlan,
       addr[i] = stream_history[rdPtr].addr[i];
     rdPtr++;
     if (rdPtr==AVB_STREAM_DETECT_HISTORY_SIZE)
-      rdPtr = 0;    
+      rdPtr = 0;
     return rdPtr+1; // return stream number
   }
   return 0;

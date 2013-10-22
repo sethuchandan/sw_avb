@@ -19,7 +19,7 @@ void ptp_request_time_info(chanend c)
 }
 
 
-void ptp_get_requested_time_info(chanend c, 
+void ptp_get_requested_time_info(chanend c,
                                  ptp_time_info &info)
 {
   timer tmr;
@@ -34,18 +34,22 @@ void ptp_get_requested_time_info(chanend c,
     c :> info.inv_ptp_adjust;
     c :> server_core_id;
   }
+<<<<<<< HEAD
   if (server_core_id != get_core_id_from_chanend(c))
+=======
+  if (server_core_id != get_local_tile_id())
+>>>>>>> c9571f7ba9113648c12534912010302e18e3892e
   {
-	  info.local_ts = info.local_ts - (othercore_now-thiscore_now);
+    info.local_ts = info.local_ts - (othercore_now-thiscore_now);
   }
 }
 
 
-void ptp_get_time_info(chanend c, 
+void ptp_get_time_info(chanend c,
                        ptp_time_info  &info)
 {
   ptp_request_time_info(c);
-  ptp_get_requested_time_info(c, info);   
+  ptp_get_requested_time_info(c, info);
 }
 
 
@@ -55,10 +59,10 @@ void ptp_request_time_info_mod64(chanend c)
 }
 
 
-void ptp_get_requested_time_info_mod64(chanend c, 
-                                       ptp_time_info_mod64 &info)
+void ptp_get_requested_time_info_mod64_use_timer(chanend c,
+                                                 ptp_time_info_mod64 &info,
+                                                 timer tmr)
 {
-  timer tmr;
   signed thiscore_now,othercore_now;
   unsigned server_core_id;
   slave {
@@ -72,19 +76,33 @@ void ptp_get_requested_time_info_mod64(chanend c,
     c :> info.inv_ptp_adjust;
     c :> server_core_id;
   }
+<<<<<<< HEAD
   if (server_core_id != get_core_id_from_chanend(c))
+=======
+  if (server_core_id != get_local_tile_id())
+>>>>>>> c9571f7ba9113648c12534912010302e18e3892e
   {
-	  // 3 = protocol instruction cycle difference
-	  info.local_ts = info.local_ts - (othercore_now-thiscore_now-3);
+    // 3 = protocol instruction cycle difference
+    info.local_ts = info.local_ts - (othercore_now-thiscore_now-3);
   }
 }
 
 
-void ptp_get_time_info_mod64(chanend c, 
+void ptp_get_requested_time_info_mod64(chanend c,
+                                       ptp_time_info_mod64 &info)
+{
+  timer tmr;
+  ptp_get_requested_time_info_mod64_use_timer(c, info, tmr);
+}
+
+
+void ptp_get_local_time_info_mod64(ptp_time_info_mod64 &info);
+
+void ptp_get_time_info_mod64(chanend ?c,
                              ptp_time_info_mod64  &info)
 {
   ptp_request_time_info_mod64(c);
-  ptp_get_requested_time_info_mod64(c, info);   
+  ptp_get_requested_time_info_mod64(c, info);
 }
 
 
@@ -97,12 +115,34 @@ void ptp_set_legacy_mode(chanend c, int mode)
 
 void ptp_get_current_grandmaster(chanend ptp_server, unsigned char grandmaster[8])
 {
-	send_cmd(ptp_server, PTP_GET_GRANDMASTER);
-	slave
-	{
-		for(int i = 0; i < 8; i++)
-		{
-			ptp_server :> grandmaster[i];
-		}
-	}
+  send_cmd(ptp_server, PTP_GET_GRANDMASTER);
+  slave
+  {
+    for(int i = 0; i < 8; i++)
+    {
+      ptp_server :> grandmaster[i];
+    }
+  }
+}
+
+ptp_state_t ptp_get_state(chanend ptp_server)
+{
+  ptp_state_t state;
+  send_cmd(ptp_server, PTP_GET_STATE);
+  slave
+  {
+    ptp_server :> state;
+  }
+
+  return state;
+}
+
+
+void ptp_get_propagation_delay(chanend ptp_server, unsigned &pdelay)
+{
+  send_cmd(ptp_server, PTP_GET_PDELAY);
+  slave
+  {
+    ptp_server :> pdelay;
+  }
 }

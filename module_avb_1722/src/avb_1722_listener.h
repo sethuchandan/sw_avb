@@ -3,7 +3,7 @@
  * \brief IEC 61883-6/AVB1722 Listener definitions
  */
 
-#ifndef _AVB1722_LISTENER_H_ 
+#ifndef _AVB1722_LISTENER_H_
 #define _AVB1722_LISTENER_H_ 1
 #ifndef __XC__
 #define streaming
@@ -14,16 +14,24 @@
 #include "gptp.h"
 #include "media_output_fifo.h"
 
-#ifndef MAX_INCOMING_AVB_STREAMS 
+#ifndef MAX_INCOMING_AVB_STREAMS
+#if AVB_NUM_SINKS > 0
 #define MAX_INCOMING_AVB_STREAMS (AVB_NUM_SINKS)
+#else
+#define MAX_INCOMING_AVB_STREAMS 1 // Just set to get Listener to compile when disabled
+#endif
 #endif
 
-#ifndef AVB_MAX_CHANNELS_PER_STREAM 
-#define AVB_MAX_CHANNELS_PER_STREAM 16
+#ifndef AVB_MAX_CHANNELS_PER_LISTENER_STREAM
+#define AVB_MAX_CHANNELS_PER_LISTENER_STREAM 8
+#endif
+
+#if MAX_INCOMING_AVB_STREAMS > 8
+#error "More than 8 streams not supported in this firmware configuration"
 #endif
 
 #ifndef MAX_AVB_STREAMS_PER_LISTENER
-#define MAX_AVB_STREAMS_PER_LISTENER 12
+#define MAX_AVB_STREAMS_PER_LISTENER MAX_INCOMING_AVB_STREAMS
 #endif
 
 
@@ -37,8 +45,7 @@ typedef struct avb_1722_stream_info_t {
   int num_channels;
   int dbc;                         //!< The DBC of the last seen packet
   int last_sequence;               //!< The sequence number from the last 1722 packet
-  int unique_idx;                 //!< index unique in the endpoint
-  media_output_fifo_t map[AVB_MAX_CHANNELS_PER_STREAM];
+  media_output_fifo_t map[AVB_MAX_CHANNELS_PER_LISTENER_STREAM];
 } avb_1722_stream_info_t;
 
 
@@ -47,7 +54,7 @@ int avb_1722_listener_process_packet(chanend? buf_ctl,
                                      unsigned char Buf[],
                                      int numBytes,
                                      REFERENCE_PARAM(avb_1722_stream_info_t, stream_info),
-				                     REFERENCE_PARAM(ptp_time_info_mod64, timeInfo),
+                                     NULLABLE_REFERENCE_PARAM(ptp_time_info_mod64, timeInfo),
                                      int index,
                                      REFERENCE_PARAM(int, notified_buf_ctl));
 #else
@@ -55,9 +62,16 @@ int avb_1722_listener_process_packet(chanend buf_ctl,
                                      unsigned char Buf[],
                                      int numBytes,
                                      REFERENCE_PARAM(avb_1722_stream_info_t, stream_info),
-				                     REFERENCE_PARAM(ptp_time_info_mod64, timeInfo),
+				                             REFERENCE_PARAM(ptp_time_info_mod64, timeInfo),
                                      int index,
                                      REFERENCE_PARAM(int, notified_buf_ctl));
 #endif
+
+typedef struct avb_1722_listener_state_s {
+  avb_1722_stream_info_t listener_streams[MAX_INCOMING_AVB_STREAMS];
+  int notified_buf_ctl;
+  int router_link;
+} avb_1722_listener_state_t;
+
 
 #endif

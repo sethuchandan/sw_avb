@@ -6,7 +6,7 @@
 #include "media_clock_client.h"
 #include "simple_printf.h"
 
-#define OUTPUT_DURING_LOCK 1
+#define OUTPUT_DURING_LOCK 0
 #define NOTIFICATION_PERIOD 250
 
 #define START_OF_FIFO(s) ((unsigned int*)&((s)->fifo[0]))
@@ -43,7 +43,7 @@ typedef struct ofifo_t {
 void
 media_output_fifo_init(int s0, unsigned stream_num)
 {
-  struct ofifo_t *s = 
+  struct ofifo_t *s =
     (struct ofifo_t *) s0;
 
   s->state = DISABLED;
@@ -56,9 +56,9 @@ media_output_fifo_init(int s0, unsigned stream_num)
 }
 
 void
-disable_media_output_fifo(int s0) 
+disable_media_output_fifo(int s0)
 {
-  struct ofifo_t *s = 
+  struct ofifo_t *s =
     (struct ofifo_t *) s0;
 
   s->state = DISABLED;
@@ -66,9 +66,9 @@ disable_media_output_fifo(int s0)
 }
 
 void
-enable_media_output_fifo(int s0, int media_clock) 
+enable_media_output_fifo(int s0, int media_clock)
 {
-  struct ofifo_t *s = 
+  struct ofifo_t *s =
     (struct ofifo_t *) s0;
 
   s->state = ZEROING;
@@ -83,7 +83,6 @@ enable_media_output_fifo(int s0, int media_clock)
   s->sample_count = 0;
   s->media_clock = media_clock;
   s->pending_init_notification = 1;
-  return;
 }
 
 
@@ -92,7 +91,7 @@ void media_output_fifo_set_ptp_timestamp(media_output_fifo_t s0,
                                          unsigned int ptp_ts,
                                          unsigned sample_number)
 {
-  struct ofifo_t *s = 
+  struct ofifo_t *s =
     (struct ofifo_t *) s0;
 
   if (s->marker == 0) {
@@ -111,11 +110,11 @@ unsigned int
 media_output_fifo_pull_sample(media_output_fifo_t s0,
                               unsigned int timestamp)
 {
-  struct ofifo_t *s = 
+  struct ofifo_t *s =
     (struct ofifo_t *) s0;
   unsigned int sample;
   unsigned int *dptr = s->dptr;
-  
+
 #ifdef XSCOPE_OUTPUT_FIFO_PULL
   if (s->wrptr - dptr >= 0)
   {
@@ -128,7 +127,7 @@ media_output_fifo_pull_sample(media_output_fifo_t s0,
     xscope_probe_data(0, size);
   }
 #endif
-  
+
   if (dptr == s->wrptr)
   {
     // Underflow
@@ -145,7 +144,7 @@ media_output_fifo_pull_sample(media_output_fifo_t s0,
   if (dptr == END_OF_FIFO(s)) {
     dptr = START_OF_FIFO(s);
   }
-  
+
   s->dptr = dptr;
 
   if (s->zero_flag)
@@ -155,21 +154,21 @@ media_output_fifo_pull_sample(media_output_fifo_t s0,
 }
 
 // 1722 thread
-void 
+void
 media_output_fifo_maintain(media_output_fifo_t s0,
                            chanend buf_ctl,
                            int *notified_buf_ctl)
 {
   struct ofifo_t *s = (struct ofifo_t *) s0;
   unsigned time_since_last_notification;
-    
+
   if (s->pending_init_notification && !(*notified_buf_ctl)) {
     notify_buf_ctl_of_new_stream(buf_ctl, s0);
     *notified_buf_ctl = 1;
     s->pending_init_notification = 0;
   }
 
-  switch (s->state) 
+  switch (s->state)
     {
     case DISABLED:
       break;
@@ -179,8 +178,12 @@ media_output_fifo_maintain(media_output_fifo_t s0,
         // set the wrptr so that the fifo size is 1/2 of the buffer size
         int buf_len = (END_OF_FIFO(s) - START_OF_FIFO(s));
         unsigned int *new_wrptr;
+<<<<<<< HEAD
         
         //TODO: TG why the while?
+=======
+
+>>>>>>> c9571f7ba9113648c12534912010302e18e3892e
         new_wrptr = s->dptr + ((buf_len>>1));
         while (new_wrptr >= END_OF_FIFO(s))
           new_wrptr -= buf_len;
@@ -190,18 +193,18 @@ media_output_fifo_maintain(media_output_fifo_t s0,
         s->local_ts = 0;
         s->ptp_ts = 0;
         s->marker = 0;
-#ifdef OUTPUT_DURING_LOCK
-        s->zero_flag = 0;
+#if (OUTPUT_DURING_LOCK == 0)
+        s->zero_flag = 1;
 #endif
       }
       break;
     case LOCKING:
     case LOCKED:
-      time_since_last_notification = 
+      time_since_last_notification =
         (signed) s->sample_count - (signed) s->last_notification_time;
-      if (s->ptp_ts != 0 && 
-          s->local_ts != 0 && 
-          !(*notified_buf_ctl) 
+      if (s->ptp_ts != 0 &&
+          s->local_ts != 0 &&
+          !(*notified_buf_ctl)
           &&
           (s->last_notification_time == 0 ||
            time_since_last_notification > NOTIFICATION_PERIOD)
@@ -265,6 +268,7 @@ media_output_fifo_strided_push(media_output_fifo_t s0,
 
     if (new_wrptr == END_OF_FIFO(s)) new_wrptr = START_OF_FIFO(s);
 
+<<<<<<< HEAD
     if (new_wrptr != s->dptr) {
       *wrptr = sample;
       wrptr = new_wrptr;
@@ -325,6 +329,8 @@ media_output_fifo_strided_push_saf16(media_output_fifo_t s0,
 
     if (new_wrptr == END_OF_FIFO(s)) new_wrptr = START_OF_FIFO(s);
 
+=======
+>>>>>>> c9571f7ba9113648c12534912010302e18e3892e
     if (new_wrptr != s->dptr) {
       *wrptr = sample;
       wrptr = new_wrptr;
@@ -336,38 +342,38 @@ media_output_fifo_strided_push_saf16(media_output_fifo_t s0,
 
   s->wrptr = wrptr;
   s->sample_count+=count;
-  return;
 }
-
 
 // 1722 thread
 void
-media_output_fifo_handle_buf_ctl(chanend buf_ctl, 
+media_output_fifo_handle_buf_ctl(chanend buf_ctl,
                                  int s0,
-                                 int *buf_ctl_notified)
+                                 int *notified_buf_ctl,
+                                 timer tmr)
 {
-  int cmd;              
+  int cmd;
   struct ofifo_t *s = (struct ofifo_t *) s0;
-  cmd = get_buf_ctl_cmd(buf_ctl); 
+  cmd = get_buf_ctl_cmd(buf_ctl);
   switch (cmd)
     {
     case BUF_CTL_REQUEST_INFO: {
-      send_buf_ctl_info(buf_ctl,                         
+      send_buf_ctl_info(buf_ctl,
                         s->state == LOCKED,
                         s->ptp_ts,
                         s->local_ts,
                         s->dptr - START_OF_FIFO(s),
-                        s->wrptr - START_OF_FIFO(s));
+                        s->wrptr - START_OF_FIFO(s),
+                        tmr);
       s->ptp_ts = 0;
       s->local_ts = 0;
       s->marker = (unsigned int *) 0;
       break;
     }
     case BUF_CTL_REQUEST_NEW_STREAM_INFO: {
-      send_buf_ctl_new_stream_info(buf_ctl,                         
+      send_buf_ctl_new_stream_info(buf_ctl,
                                    s->media_clock);
-      buf_ctl_ack(buf_ctl);      
-      *buf_ctl_notified = 0;
+      buf_ctl_ack(buf_ctl);
+      *notified_buf_ctl = 0;
       break;
     }
     case BUF_CTL_ADJUST_FILL:
@@ -390,8 +396,8 @@ media_output_fifo_handle_buf_ctl(chanend buf_ctl,
       s->ptp_ts = 0;
       s->local_ts = 0;
       s->marker = (unsigned int *) 0;
-      buf_ctl_ack(buf_ctl); 
-      *buf_ctl_notified = 0;
+      buf_ctl_ack(buf_ctl);
+      *notified_buf_ctl = 0;
       break;
     case BUF_CTL_RESET:
       s->state = ZEROING;
@@ -401,17 +407,16 @@ media_output_fifo_handle_buf_ctl(chanend buf_ctl,
         s->zero_marker = s->wrptr - 1;
       s->zero_flag = 1;
       *s->zero_marker = 1;
-      buf_ctl_ack(buf_ctl); 
-      *buf_ctl_notified = 0;
+      buf_ctl_ack(buf_ctl);
+      *notified_buf_ctl = 0;
       break;
     case BUF_CTL_ACK:
-      buf_ctl_ack(buf_ctl); 
-      *buf_ctl_notified = 0;
+      buf_ctl_ack(buf_ctl);
+      *notified_buf_ctl = 0;
       break;
     default:
       break;
-    }            
-  return;
+    }
 }
 
 void
@@ -422,7 +427,6 @@ media_output_fifo_set_volume(media_output_fifo_t s0,
 	  s->volume = volume;
 }
 
-
 void
 init_media_output_fifos(media_output_fifo_t ofifos[],
                        media_output_fifo_data_t ofifo_data[],
@@ -430,6 +434,5 @@ init_media_output_fifos(media_output_fifo_t ofifos[],
 {
   for(int i=0;i<n;i++) {
     ofifos[i] = (unsigned int) &ofifo_data[i];
-    
   }
 }
