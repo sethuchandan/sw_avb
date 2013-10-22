@@ -13,7 +13,11 @@
 #endif
 
 #ifndef MEDIA_INPUT_FIFO_SAMPLE_FIFO_SIZE
-#define GET_SIZE(x) (x <= 48000) ? 64 : 128
+#if (AVB_NUM_MEDIA_INPUTS <= 8)
+#define GET_SIZE(x) (x == 44100 || x == 48000) ? 64 : 128
+#else
+#define GET_SIZE(x) (x == 44100 || x == 48000) ? 128 : 256
+#endif
 #define MEDIA_INPUT_FIFO_SAMPLE_FIFO_SIZE (GET_SIZE(AVB_MAX_AUDIO_SAMPLE_RATE))
 #endif
 
@@ -37,6 +41,24 @@ typedef struct ififo_t media_input_fifo_data_t;
  * This type provides a handle to a media input fifo.
  **/
 typedef int media_input_fifo_t;
+
+
+#ifdef __XC__
+void media_input_fifo_stuffer(
+#ifdef AVB_INPUT_FIFO_STREAMING_CHAN
+        chanend ?c_sync,
+#else
+        streaming chanend ?c_sync,
+#endif
+		media_input_fifo_t ?input_fifos[],
+		unsigned num_chan_in);
+
+void media_input_fifo_stuffer_chan(
+		streaming chanend ?c_samples_from_adc,
+		media_input_fifo_t ?input_fifos[],
+		unsigned num_chan_in);
+
+#endif
 
 /**
  *  \brief Push a sample into the FIFO

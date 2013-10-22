@@ -1,15 +1,40 @@
 #include <print.h>
-#include <simple_printf.h>
 #include "media_input_fifo.h"
 #include "hwlock.h"
 #include "avb_1722_def.h"
-#include "xscope.h"
+#include "avb_conf.h"
+#include <xscope.h>
+#include <assert.h>
+
+/* ififo structure and communication
+symbols:
+  t: timestamp
+  d: dbc
+  s: sample
+  _: packet delimiter
+  ^: Pointer
+  w: write
+  r: read
+  A: Audio Interface Task
+  T: Talker Task
+
+ififo structure (for 61883-6)
+                START                                                                 END
+				|tdssssssss_tdssssssss_tdssssssss_tdssssssss_tdssssssss.....tdssssssss|
+				            ^                     ^ ^
+ififo commms
+  A: push                   startIndex (w)
+  T: release                                      rdIndex (w)
+  T: get                    startIndex (r)        rdIndex (r)
+  T: set_ptr                                        ptr (w)
+  T: get_ptr                                        ptr (r)
+
+
+*/
 
 static hwlock_t enable_lock;
 unsigned int enable_request_state = 0;
 unsigned int enable_indication_state = 0;
-
-#define AVB_MAX_SPINLOCK_ITERATIONS 100000
 
 void media_input_fifo_enable_fifos(unsigned int enable)
 {
@@ -115,14 +140,16 @@ void media_input_fifo_push_sample(media_input_fifo_t media_input_fifo0,
 
     spaceLeft &= (MEDIA_INPUT_FIFO_SAMPLE_FIFO_SIZE-1);
 
-    if (spaceLeft && (spaceLeft < packetSize)) return;
+    if (spaceLeft && (spaceLeft < packetSize)) {
+#if AVB_TALKER_XSCOPE_PROBES
+    	xscope_int(0, ts); // log the timestamp lost due to overflow
+#endif
+    	simple_printf("ififo overflow");
+    	assert(0);
+    	return;
+    }
 
     wrIndex[0] = ts;
-#ifdef USE_XSCOPE_PROBES
-	//xscope_probe_data(11, (unsigned) (ts));
-	//xscope_probe_data(12, (unsigned) (wrIndex));
-#endif
-
     wrIndex[1] = media_input_fifo->dbc;
     wrIndex[2] = sample;
     wrIndex += 3;
@@ -194,29 +221,14 @@ media_input_fifo_get_packet(media_input_fifo_t media_input_fifo0,
   volatile ififo_t *media_input_fifo =  (ififo_t *) media_input_fifo0;
   int *rdIndex = (int *) media_input_fifo->rdIndex;
 
-  int count=0;
-  while (media_input_fifo->rdIndex==0) {
-      count++;
-      if(count==AVB_MAX_SPINLOCK_ITERATIONS) {
-          simple_printf("Error: rdIndex==0 spinlock max iterations (%d) reached\n", count);
-      }
-  }
+  while (media_input_fifo->rdIndex==0);
 
   rdIndex = (int *) media_input_fifo->rdIndex;
 
-  count=0;
-  // waits until new packet is available. I.e. until startIndex was moved on by I2S side
-  while (rdIndex == (int *) media_input_fifo->startIndex) {
-      count++;
-      if(count==AVB_MAX_SPINLOCK_ITERATIONS) {
-          simple_printf("Error: rdINdex==startIndex spinlock max iterations (%d) reached\n", count);
-      }
-  }
+  while (rdIndex == (int *) media_input_fifo->startIndex);
 
 
   *ts = *rdIndex;
-  // trash the timestamp
-  //*rdIndex = 0xdeadbeef;
   *dbc = *(rdIndex+1);
 
   return ((unsigned int *) (rdIndex+2));
