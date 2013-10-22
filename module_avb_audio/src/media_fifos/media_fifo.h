@@ -10,6 +10,17 @@ void media_ctl_register(chanend media_ctl,
                         int num_out,
                         media_output_fifo_t ?output_fifos[],
                         int clk_ctl_index);
+
+
+/**
+ * Single core implementation of ififo/ofifo support channel interface
+ */
+void media_input_output_fifo_support_upto_16ch(streaming chanend samples_out,
+			streaming chanend c_samples_from_adc,
+            media_output_fifo_t ?output_fifos[],
+            media_input_fifo_t ?input_fifos[]
+            );
+
 #endif
 
 #endif // __media_fifo_h__
