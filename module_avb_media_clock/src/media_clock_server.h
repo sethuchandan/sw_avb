@@ -48,8 +48,14 @@ typedef enum media_clock_type_t {
 #ifdef __XC__
 void media_clock_server(chanend media_clock_ctl,
                         chanend ?ptp_svr,
-                        chanend ?buf_ctl[], int buf_ctl_size,
+                        chanend ?buf_ctl[],
+                        int num_buf_ctl,
+#if COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
                         out buffered port:32 p_fs[]
+#else
+                        chanend ?clk_ctl[],
+                        int num_clk_ctl
+#endif
 #if COMBINE_MEDIA_CLOCK_AND_PTP
                         ,chanend c_rx,
                         chanend c_tx,
@@ -57,12 +63,18 @@ void media_clock_server(chanend media_clock_ctl,
                         int num_ptp,
                         enum ptp_server_type server_type
 #endif
-                        );
+);
 #else
 void media_clock_server(chanend media_clock_ctl,
                         chanend ptp_svr,
-                        chanend buf_ctl[], int buf_ctl_size,
+                        chanend buf_ctl[],
+                        int num_buf_ctl,
+#if COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
                         port p_fs[]
+#else
+                        chanend clk_ctl[],
+                        int num_clk_ctl
+#endif
 #if COMBINE_MEDIA_CLOCK_AND_PTP
                         ,chanend c_rx,
                         chanend c_tx,

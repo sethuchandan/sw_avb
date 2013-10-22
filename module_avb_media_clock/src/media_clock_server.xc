@@ -12,8 +12,6 @@
 #include "avb_media_clock_def.h"
 #include "gptp.h"
 #include "avb_control_types.h"
-#include "get_core_id_from_chanend.h"
-#include "xscope.h"
 
 #define DEBUG_MEDIA_CLOCK
 #define PLL_OUTPUT_TIMING_CHECK 0
@@ -21,10 +19,15 @@
 #define STABLE_THRESHOLD 32
 #define LOCK_COUNT_THRESHOLD 400
 #define ACCEPTABLE_FILL_ADJUST 50000
+#if (AVB_NUM_MEDIA_OUTPUTS>8 && AVB_NUM_MEDIA_SINKS>=8)
+//Relax threshold to make 8 stereo streams work (1t8s16ch_1l8s16ch_TDM configuration)
+#define LOST_LOCK_THRESHOLD 27
+#else
 #define LOST_LOCK_THRESHOLD 24
+#endif
+
 #define MIN_FILL_LEVEL 5
 #define MAX_SAMPLES_PER_1722_PACKET 12
-
 
 static media_clock_t media_clocks[AVB_NUM_MEDIA_CLOCKS];
 
@@ -122,9 +125,6 @@ static void manage_buffer(buf_info_t &b,
   int rdptr,wrptr,fill;
   int thiscore_now,othercore_now;
   unsigned server_core_id;
-#ifdef USE_XSCOPE_PROBES
-  xscope_probe(1); // start
-#endif
 
   if (b.media_clock == -1) {
       buf_ctl <: b.fifo;
@@ -137,7 +137,6 @@ static void manage_buffer(buf_info_t &b,
 
   buf_ctl <: b.fifo;
   buf_ctl <: BUF_CTL_REQUEST_INFO;
-
   master {
     buf_ctl <: 0;
     buf_ctl :> othercore_now;
@@ -149,7 +148,6 @@ static void manage_buffer(buf_info_t &b,
     buf_ctl :> wrptr;
     buf_ctl :> server_core_id;
   }
-
   if (server_core_id != get_local_tile_id())
   {
 	  outgoing_timestamp_local = outgoing_timestamp_local - (othercore_now - thiscore_now);
@@ -171,6 +169,12 @@ static void manage_buffer(buf_info_t &b,
                                                      timeInfo);
 
   diff = (signed) ptp_outgoing_actual - (signed) presentation_timestamp;
+#if AVB_LISTENER_XSCOPE_PROBES
+  if(index==0) {
+	  // channel 0 should be representative of others
+      xscope_int(0, diff);
+  }
+#endif
 
   update_stream_derived_clocks(index,
                                outgoing_timestamp_local,
@@ -185,7 +189,6 @@ static void manage_buffer(buf_info_t &b,
       // clock not locked yet
       buf_ctl <: b.fifo;
       buf_ctl <: BUF_CTL_ACK;
-
       inct(buf_ctl);
       return;
   }
@@ -234,7 +237,11 @@ static void manage_buffer(buf_info_t &b,
             fill < MIN_FILL_LEVEL))
   {
 #ifdef DEBUG_MEDIA_CLOCK
-      simple_printf("Media output %d lost lock. sample_diff : %d, fill : %d\n", index, sample_diff, fill);
+	  if(fill < MIN_FILL_LEVEL) {
+         simple_printf("Media output %d lost lock. Because fill < %d\n", index, MIN_FILL_LEVEL);
+	  } else {
+	     simple_printf("Media output %d lost lock. Because absolute diff between desired and actual presentation time is %d samples\n", index, sample_diff);
+	  }
 #endif
       b.adjust = 0;
       buf_ctl <: b.fifo;
@@ -247,10 +254,6 @@ static void manage_buffer(buf_info_t &b,
   }
 
   b.prev_diff = sample_diff;
-
-#ifdef USE_XSCOPE_PROBES
-  xscope_probe(1);  // stop 1
-#endif
 }
 
 
@@ -313,8 +316,12 @@ static void do_media_clock_output(media_clock_t &clk,
   p @ clk.wordTime <: clk.bit;
 
 }
-
+#if COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
 static void update_media_clocks(chanend ?ptp_svr, int clk_time)
+
+#else
+static void update_media_clocks(chanend ?ptp_svr, int clk_time, int registered[], chanend ?c_clk_ctl[], int num_clk_ctl)
+#endif
 {
   for (int i=0;i<AVB_NUM_MEDIA_CLOCKS;i++) {
     if (media_clocks[i].active) {
@@ -326,6 +333,13 @@ static void update_media_clocks(chanend ?ptp_svr, int clk_time)
                            CLOCK_RECOVERY_PERIOD);
 
       update_media_clock_divide(media_clocks[i]);
+
+#if !COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
+        for (int j=0;j<num_clk_ctl;j++) {
+          if (registered[j]==i)
+            clk_ctl_set_rate(c_clk_ctl[j], media_clocks[i].wordLength);
+        }
+#endif
     }
   }
 }
@@ -335,7 +349,12 @@ void media_clock_server(chanend media_clock_ctl,
                         chanend ?ptp_svr,
                         chanend ?buf_ctl[],
                         int num_buf_ctl,
+#if COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
                         out buffered port:32 p_fs[]
+#else
+                        chanend ?c_clk_ctl[],
+                        int num_clk_ctl
+#endif
 #if COMBINE_MEDIA_CLOCK_AND_PTP
                         ,chanend c_rx,
                         chanend c_tx,
@@ -359,7 +378,6 @@ void media_clock_server(chanend media_clock_ctl,
   ptp_server_init(c_rx, c_tx, server_type, tmr, ptp_timeout);
 #endif
 
-
 #if (AVB_NUM_MEDIA_OUTPUTS != 0)
   init_buffers();
 
@@ -376,18 +394,18 @@ void media_clock_server(chanend media_clock_ctl,
 
   tmr :> clk_time;
 
-
   clk_time += CLOCK_RECOVERY_PERIOD;
 
+#if COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
   for (int i=0;i<AVB_NUM_MEDIA_CLOCKS;i++)
     init_media_clock(media_clocks[i], tmr, p_fs[i]);
-
+#endif
 
   while (1) {
     #pragma ordered
     select
       {
-
+#if COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
       case (int i=0;i<num_clks;i++)
         clk_timers[i] when timerafter(media_clocks[i].next_event) :> int now:
 #if PLL_OUTPUT_TIMING_CHECK
@@ -400,26 +418,35 @@ void media_clock_server(chanend media_clock_ctl,
 #endif
         do_media_clock_output(media_clocks[i], p_fs[i]);
         break;
+#endif
 
 
 
 #if COMBINE_MEDIA_CLOCK_AND_PTP
-  case ptp_recv_and_process_packet(c_rx, c_tx):
+     case ptp_recv_and_process_packet(c_rx, c_tx):
        break;
-      case (int i=0;i<num_ptp;i++) ptp_process_client_request(c_ptp[i],
+     case (int i=0;i<num_ptp;i++) ptp_process_client_request(c_ptp[i],
                                                               tmr):
        break;
-      case tmr when timerafter(ptp_timeout) :> void:
+     case tmr when timerafter(ptp_timeout) :> void:
         if (timeafter(ptp_timeout, clk_time)) {
-          update_media_clocks(ptp_svr, clk_time);
+#if COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
+        update_media_clocks(ptp_svr, clk_time);
+#else
+        update_media_clocks(ptp_svr, clk_time, registered, c_clk_ctl, num_clk_ctl);
+#endif
           clk_time += CLOCK_RECOVERY_PERIOD;
         }
         ptp_periodic(c_tx, ptp_timeout);
         ptp_timeout += PTP_PERIODIC_TIME;
-       break;
+        break;
 #else
       case tmr when timerafter(clk_time) :> int _:
+#if COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
         update_media_clocks(ptp_svr, clk_time);
+#else
+        update_media_clocks(ptp_svr, clk_time, registered, c_clk_ctl, num_clk_ctl);
+#endif
         clk_time += CLOCK_RECOVERY_PERIOD;
         break;
 #endif
