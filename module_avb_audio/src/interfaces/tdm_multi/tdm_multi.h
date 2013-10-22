@@ -13,6 +13,12 @@
 #include <simple_printf.h>
 #include <assert.h>
 #include <xscope.h>
+#include <xports-i2s.h>
+
+#define AVB_SINGLE_CORE_FIFO_SUPPORT 1
+
+#define AVB_AUDIO_IF_SW_LOOPBACK 0
+#define LLVM_COMPILER_UNROLL_WORKAROUND 1
 
 #ifndef CLOCKS_PER_CHANNEL
 #define CLOCKS_PER_CHANNEL 32
@@ -21,6 +27,14 @@
 #ifndef TDM_NUM_CHANNELS
 #define TDM_NUM_CHANNELS 8
 #endif
+
+typedef struct i2s_ports_t {
+  clock mclk;
+  clock bclk;
+  in port p_mclk;
+  out buffered port:32 p_bclk;
+  out buffered port:32 p_lrclk;
+} i2s_ports_t;
 
 // Each sample will be right aligned, with left 32-RESOLUTION bits zeroed out
 // This exactly matches the 1722 packet format
@@ -38,10 +52,13 @@ extern unsigned prev_rx_samples[];
 extern unsigned hw_loopback_samples[];
 #endif
 
+#define XSTREAME_AUDIO_IF 1
+
+
 void tdm_master_multi_configure_ports(const clock mclk,
         clock bclk,
-        out port p_bclk,
-        out buffered port:4 p_wclk,
+        out buffered port:32 p_bclk,
+        out buffered port:32 p_wclk,
         out buffered port:32 ?p_dout[],
         int num_out,
         in buffered port:32 ?p_din[],
@@ -71,7 +88,7 @@ void tdm_master_multi_configure_ports(const clock mclk,
   \param p_dout     array of ports to output data to
   \param p_din      array of ports to input data from
   \param num_channels     number of input and output ports
-  \param c_listener  chanend connector to a listener component
+  \param c_samples_to_dac  chanend connector to a listener component
   \param input_fifos           a map from the inputs to local talker streams.
                                The channels of the inputs are interleaved,
 							   for example, if you have two input ports, the map
@@ -82,158 +99,172 @@ void tdm_master_multi_configure_ports(const clock mclk,
                        controls the master clock fo the codec
  */
 #pragma unsafe arrays
-inline void tdm_master_multi(const clock mclk,
-        clock bclk,
-        out port p_bclk,
-        out buffered port:4 p_wclk,
-        out buffered port:32 ?p_dout[],
+static inline void tdm_master_multi_upto_32(
+		xports_i2s__context_t &audio_if,
         int num_chan_out,
-        in buffered port:32 ?p_din[],
         int num_chan_in,
         int master_to_word_clock_ratio,
-        streaming chanend ?c_listener,
-        media_input_fifo_t ?input_fifos[],
-        chanend media_ctl,
-        int clk_ctl_index)  // Both in and out
+        streaming chanend ?c_samples_to_dac,
+#if XSTREAME_SHARED_MEM_IF
+        chanend ?c_sync,
+#else
+        streaming chanend ?c_samples_from_adc,
+#endif
+        media_input_fifo_t ?input_fifos[])  // Both in and out
 {
-    unsigned t;
     unsigned timestamp;
     timer tmr;
-    unsigned num_dout = (num_chan_out+TDM_NUM_CHANNELS-1)/TDM_NUM_CHANNELS;
-    unsigned num_din = (num_chan_in+TDM_NUM_CHANNELS-1)/TDM_NUM_CHANNELS;
+    unsigned int active_fifos;
 
 #ifdef CHECK_TEST_SIGNAL
     unsigned check_active=0;
 #endif
 
-    //tmr :> t;
-    // arbitrary delay to avoid ET_ILLEGAL_RESOURCE caused by xlog grabbing all the chanends
-    //tmr when timerafter(t+30000) :> void;
-    media_ctl_register(media_ctl, num_chan_in, input_fifos, 0, null, clk_ctl_index);
+#if XSTREAME_SHARED_MEM_IF
+    unsigned dac_buffer[AVB_NUM_MEDIA_OUTPUTS];
+    unsigned adc_buffer[2][AVB_NUM_MEDIA_INPUTS]; // double_buffer
 
+	unsigned int dac_buffer_address;
+	unsigned int adc_buffer_address[2]; //double buffer
+	unsigned int adc_buffer_idx = 0;  //
+
+	// init pointers
+	asm("mov %0, %1":"=r"(dac_buffer_address):"r"(dac_buffer));
+	asm("mov %0, %1":"=r"(adc_buffer_address[0]):"r"(adc_buffer[0]));
+	asm("mov %0, %1":"=r"(adc_buffer_address[1]):"r"(adc_buffer[1]));
+#endif
+
+
+	xports_i2s__initialize(audio_if);
+
+#if 0 // not sure why this is needed
     if(num_chan_out>0) {
-        c_listener <: 0;
+        c_samples_to_dac <: 0;
         for (int n=0;n<num_chan_out;n++) {
             int x;
-            c_listener :> x;
+            c_samples_to_dac :> x;
         }
     }
+#endif
 
-    tdm_master_multi_configure_ports(mclk,
-            bclk,
-            p_bclk,
-            p_wclk,
-            p_dout,
-            num_dout,
-            p_din,
-            num_din);
-
-
-    if(num_din>0) {
-        p_din[0] :> void @ t;
-    } else if(num_dout>0) {
-        p_dout[0] <: 0 @ t;
-    } else {
-        assert(0);
-    }
-
-    t += 64;
-
-    for(int i=0; i<num_din; i++)
-        asm("setpt res[%0], %1" : : "r"(p_din[i]), "r"(t + CLOCKS_PER_CHANNEL + 2));
-
-    for(int i=0; i<num_dout; i++) {
-        p_dout[i] @ (t + CLOCKS_PER_CHANNEL) <: 0;
-        p_dout[i] <: 0;
-    }
-
-    t += 2 * CLOCKS_PER_CHANNEL + TDM_NUM_CHANNELS * CLOCKS_PER_CHANNEL;
-
-    while (1)
-    {
-        unsigned int active_fifos = media_input_fifo_enable_req_state();
+    while (1) {
+        active_fifos = media_input_fifo_enable_req_state();
         tmr :> timestamp;
-        if(num_chan_out>0) {
-          c_listener <: timestamp;
-        }
-        for (int n = 0; n < TDM_NUM_CHANNELS; n++)
-        {
-            unsigned x;
-            for(int i=0; i<num_dout; i++) {
-                unsigned chan_idx = i*TDM_NUM_CHANNELS+n;
-                if(chan_idx < num_chan_out) {
-                    c_listener :> x;
-                } else {
-                    x = 0; // silent channel
-                }
-#ifdef USE_XSCOPE_PROBES
-                xscope_probe_data(22, x);
+
+        //if(num_chan_out>0) {
+          c_samples_to_dac <: timestamp;
+
+#if XSTREAME_SHARED_MEM_IF
+          // get all samples
+#pragma loop unroll
+#ifdef LLVM_COMPILER_UNROLL_WORKAROUND
+          for(int i=0; i<AVB_NUM_MEDIA_OUTPUTS; i++) {
+#else
+          for(int i=0; i<num_chan_out; i++) {
 #endif
-#ifdef CHECK_TEST_SIGNAL
-                {
-                    unsigned chan_idx = i*TDM_NUM_CHANNELS+n;
-                    if(check_active) {
-                        if(x != prev_rx_samples[chan_idx]+1) {
-                            simple_printf("ERROR: CHECK_TEST_SIGNAL received invalid sample. expected %x, actual %x, previous %x\n",prev_rx_samples[chan_idx]+1,x,prev_rx_samples[chan_idx]);
-                            assert(0);
-                        }
-                    } else {
-                        if(prev_rx_samples[chan_idx] != x) {
-                            check_active=1;
-                            simple_printf("Activated Sample Stream Loopback Selfcheck....\n");
-                        }
-                    }
-                    prev_rx_samples[chan_idx] = x;
-                }
-#endif
-#ifdef CHECK_HW_LOOPBACK
-                {
-                    unsigned chan_idx = i*TDM_NUM_CHANNELS+n;
-                    hw_loopback_samples[chan_idx] = x;
-                }
+        		  c_samples_to_dac :> dac_buffer[i];
+          }
 #endif
 
-                p_dout[i] <: bitrev(x << (32 - RESOLUTION)) & 0xffffff;
-
-            }
-            for(int i=0; i<num_din; i++) {
-                unsigned chan_idx = i*TDM_NUM_CHANNELS+n;
-
-                p_din[i] :> x;
-
-#ifdef GEN_TEST_SIGNAL
-                x = samples[chan_idx]++;
+#if XSTREAME_SHARED_MEM_IF
+		xports_i2s__transfer(audio_if, dac_buffer_address, adc_buffer_address[adc_buffer_idx]);
+#else
+#if !AVB_SINGLE_CORE_FIFO_SUPPORT
+		c_samples_from_adc <: timestamp; //signal next block of samples
 #endif
-#ifdef CHECK_HW_LOOPBACK
-                {
-                    unsigned chan_idx = i*TDM_NUM_CHANNELS+n;
-                    if(x != hw_loopback_samples[chan_idx]) {
-                        simple_printf("ERROR: Invalid hardware loopback sample on line %d. expected %x, actual %x\n",i,hw_loopback_samples[chan_idx],x);
-                        assert(0);
-                    }
-                }
+		xports_i2s__transfer_chan(audio_if, c_samples_to_dac, c_samples_from_adc);
 #endif
 
-                x = (bitrev(x) >> (32-RESOLUTION)) & 0xffffff;
+		// Notify the input fifo interface core.
+		// Send buffere address and timestamp
+#if XSTREAME_SHARED_MEM_IF
+		master {
+#if AVB_AUDIO_IF_SW_LOOPBACK
+		c_sync <: dac_buffer_address;
+#else
+		c_sync <: adc_buffer_address[adc_buffer_idx];
+#endif
+		c_sync <: timestamp;
+		};
+		// switch double buffer
+		adc_buffer_idx = 1-adc_buffer_idx;
+#endif
 
-                if(chan_idx < num_chan_in) {
-                    if (active_fifos & (1 << chan_idx)) {
-                        media_input_fifo_push_sample(input_fifos[chan_idx], x, timestamp);
-                    } else {
-                        media_input_fifo_flush(input_fifos[chan_idx]);
-                    }
-                }
-            }
-
-        }
-
-        t += TDM_NUM_CHANNELS * CLOCKS_PER_CHANNEL;
-        p_wclk @ t <: 0b0001;
+		//simple_printf("Sample Period Finished at timestamp %d\n",timestamp);
         media_input_fifo_update_enable_ind_state(active_fifos, 0xFFFFFFFF);
     }
 }
 
 
+#pragma unsafe arrays
+static inline void tdm_master_multi(xports_i2s__context_t &audio_if,
+                              int num_in,
+                              int num_out,
+                              int master_to_word_clock_ratio,
+                              media_input_fifo_t ?input_fifos[],
+                              media_output_fifo_t ?output_fifos[],
+                              chanend media_ctl,
+                              int clk_ctl_index)
+{
+  media_ctl_register(media_ctl,
+                     num_in, input_fifos,
+                     num_out, output_fifos,
+                     clk_ctl_index);
+
+#if XSTREME_DOES_PORT_INIT
+  tdm_master_multi_configure_ports(ports.mclk,
+                             ports.bclk,
+                             ports.p_bclk,
+                             ports.p_lrclk,
+                             p_dout,
+                             num_out>>1,
+                             p_din,
+                             num_in>>1);
+#endif
+
+  {
+    streaming chan c_samples_to_dac;
+#if XSTREAME_SHARED_MEM_IF
+    chan c_sync;
+#else
+    streaming chan c_samples_from_adc;
+#endif
+    par {
+
+#if AVB_SINGLE_CORE_FIFO_SUPPORT
+    	media_input_output_fifo_support_upto_16ch(c_samples_to_dac, c_samples_from_adc,
+    			output_fifos, input_fifos);
+#else
+      if (num_out > 0)
+      {
+    	  media_output_fifo_to_xc_channel(c_samples_to_dac,
+                                               output_fifos,
+                                               num_out);
+      }
+
+#if XSTREAME_SHARED_MEM_IF
+      media_input_fifo_stuffer(c_sync, input_fifos, num_in);
+#else
+      media_input_fifo_stuffer_chan(c_samples_from_adc, input_fifos, num_in);
+#endif
+#endif
+
+      tdm_master_multi_upto_32(
+    		  audio_if,
+    		  num_out,
+    		  num_in,
+    		  master_to_word_clock_ratio,
+    		  c_samples_to_dac,
+#if XSTREAME_SHARED_MEM_IF
+              c_sync,
+#else
+              c_samples_from_adc,
+#endif
+    		  null);
+    }
+  }
+
+}
 
 
 // loop back inputs to outputs - for testing

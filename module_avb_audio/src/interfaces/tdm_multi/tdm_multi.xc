@@ -78,8 +78,8 @@ void tdm_mulit_loopback(  clock mclk, in port p_mck, out port p_bclk,
 
 void tdm_master_multi_configure_ports(const clock mclk,
         clock bclk,
-        out port p_bclk,
-        out buffered port:4 p_wclk,
+        out buffered port:32 p_bclk,
+        out buffered port:32 p_wclk,
         out buffered port:32 ?p_dout[],
         int num_out,
         in buffered port:32 ?p_din[],
@@ -137,19 +137,6 @@ unsigned prev_rx_samples[AVB_NUM_MEDIA_OUTPUTS];
 unsigned hw_loopback_samples[NUM_LOOPBACK_SAMPLES];
 #endif
 
-extern inline void tdm_master_multi(const clock mclk,
-        clock bclk,
-        out port p_bclk,
-        out buffered port:4 p_wclk,
-        out buffered port:32 ?p_dout[],
-        int  num_chan_out,
-        in buffered port:32 ?p_din[],
-        int num_chan_in,
-        int master_to_word_clock_ratio,
-        streaming chanend ?c_listener,
-        media_input_fifo_t ?input_fifos[],
-        chanend media_ctl,
-        int clk_ctl_index);  // Both in and out
 
 
 
