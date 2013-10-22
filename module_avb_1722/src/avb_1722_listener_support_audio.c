@@ -262,7 +262,6 @@ int avb_1722_listener_process_packet(chanend buf_ctl,
                                    stride, num_samples_in_payload);
     }
     sample_ptr += 4;
-#endif
   }
 
   return(1);

@@ -2,8 +2,8 @@
  * \file avb_1722_talker_support_audio.c
  * \brief 1722 Talker support C functions
  */
- #include <print.h>
- #include <xscope.h>
+#include <print.h>
+#include <xscope.h>
 #include "avb_conf.h"
 #include "simple_printf.h"
 #include "xscope.h"
@@ -439,4 +439,5 @@ int avb1722_create_packet(unsigned char Buf0[],
     return (AVB_ETHERNET_HDR_SIZE + AVB_TP_HDR_SIZE + pkt_data_length);
 }
 
+#endif
 #endif

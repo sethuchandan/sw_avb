@@ -243,12 +243,6 @@ void avb_1722_talker_send_packets(chanend c_mac_tx,
 
       st.talker_streams[st.cur_avb_stream].last_transmit_time = t;
 
-					    simple_printf("Stream %d : another %d packets sent\n", cur_avb_stream, AVB_TALKER_SENT_FRAME_THRESHOLD);
-					    packets_sent[cur_avb_stream] = 0;
-					} else {
-					    packets_sent[cur_avb_stream]++;
-					}
-#endif
     }
     if (packet_size || st.talker_streams[st.cur_avb_stream].initial)
     {
