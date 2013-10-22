@@ -4,7 +4,6 @@
 #include "media_output_fifo.h"
 #include "avb_1722_def.h"
 #include "media_clock_client.h"
-#include "simple_printf.h"
 
 #define OUTPUT_DURING_LOCK 0
 #define NOTIFICATION_PERIOD 250
@@ -237,7 +236,6 @@ media_output_fifo_strided_push(media_output_fifo_t s0,
     count++;
     sample = *sample_ptr;
     sample = __builtin_bswap32(sample);
-
     sample_ptr += stride;
 
 #ifdef MEDIA_OUTPUT_FIFO_VOLUME_CONTROL
@@ -246,11 +244,11 @@ media_output_fifo_strided_push(media_output_fifo_t s0,
 #endif
     {
         // Multiply volume into upper word of 64 bit result
-        int h=0, l=0;
-        asm ("maccs %0,%1,%2,%3":"+r"(h),"+r"(l):"r"(sample),"r"(volume));
-        sample = h >> 6;
-        sample &= 0xffffff;
-    }
+    	int h=0, l=0;
+		asm ("maccs %0,%1,%2,%3":"+r"(h),"+r"(l):"r"(sample),"r"(volume));
+		sample = h >> 6;
+	    sample &= 0xffffff;
+	}
 #else
 #ifdef AVB_1722_FORMAT_SAF
     sample = sample >> 8;
@@ -274,7 +272,6 @@ media_output_fifo_strided_push(media_output_fifo_t s0,
 
   s->wrptr = wrptr;
   s->sample_count+=count;
-  return;
 }
 
 void

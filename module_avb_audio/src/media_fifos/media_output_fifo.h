@@ -56,6 +56,7 @@ typedef struct media_output_fifo_data_t media_output_fifo_data_t;
  **/
 typedef int media_output_fifo_t;
 
+
 /**
  *  \brief Output audio streams from media fifos to an XC channel.
  *
@@ -172,8 +173,6 @@ media_output_fifo_strided_push_saf16(media_output_fifo_t s0,
                                unsigned short *sample_ptr,
                                int stride,
                                int n);
-
-
 
 #endif
 
