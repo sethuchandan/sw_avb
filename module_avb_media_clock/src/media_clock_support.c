@@ -22,7 +22,6 @@
 #include "media_clock_internal.h"
 #include "media_clock_client.h"
 #include "misc_timer.h"
-#include "xscope.h"
 
 #define NANO_SECOND 1000000000
 
@@ -101,18 +100,10 @@ void update_media_clock_stream_info(int clock_index,
 	clock_info->stream_info2.valid = 1;
 	clock_info->stream_info2.locked = locked;
 	clock_info->stream_info2.fill = fill;
-
-#ifdef USE_XSCOPE_PROBES
-			//xscope_probe_data(5, (unsigned int) local_ts);
-			//xscope_probe_data(6, (unsigned int) outgoing_ptp_ts);
-			//xscope_probe_data(7, (unsigned int) presentation_ts);
-#endif
-
 }
 
 void inform_media_clock_of_lock(int clock_index) {
 	clock_info_t *clock_info = &clock_states[clock_index];
-    //clock_info->stream_info1.valid = 0; // Invaidate both clock infos
 	clock_info->stream_info2.valid = 0;
 }
 
@@ -182,6 +173,9 @@ unsigned int update_media_clock(chanend ptp_svr,
 
 			clock_info->stream_info1 = clock_info->stream_info2;
 			clock_info->stream_info2.valid = 0;
+#if AVB_LISTENER_XSCOPE_PROBES
+		    xscope_int(1, clock_info->wordlen);
+#endif
 		}
 		break;
 	}
