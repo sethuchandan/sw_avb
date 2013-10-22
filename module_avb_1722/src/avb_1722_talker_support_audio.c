@@ -2,11 +2,13 @@
  * \file avb_1722_talker_support_audio.c
  * \brief 1722 Talker support C functions
  */
-#include <print.h>
-#include <xscope.h>
+ #include <print.h>
+ #include <simple_printf.h>
+ #include <xscope.h>
 #include "avb_conf.h"
-#include "simple_printf.h"
-#include "xscope.h"
+
+//#define AVB_DEBUG_PRINT
+#define AVB_1722_TALKER_PERF_OPTIMISATION 0
 
 #ifdef AVB_1722_FORMAT_SAF
 #define AVG_PRESENTATION_TIME_DELTA 125000  // 125us = 6 samples at 48kHz
@@ -15,9 +17,6 @@
 #endif
 //#define MAX_PRESENTATION_TIME_DELTA_DELTA AVG_PRESENTATION_TIME_DELTA / 100 // 1% deviation
 #define MAX_PRESENTATION_TIME_DELTA_DELTA AVG_PRESENTATION_TIME_DELTA/5 // 200% deviation
-
-//#define AVB_TALKER_DEBUG_LOGIC
-//#define PRINT
 
 #if AVB_NUM_SOURCES > 0 && (defined(AVB_1722_FORMAT_61883_6) || defined(AVB_1722_FORMAT_SAF))
 
@@ -96,8 +95,7 @@ void AVB1722_Talker_bufInit(unsigned char Buf0[],
     //--------------------------------------------------------------------------
     // 3. Initialise the Simple Audio Format protocol specific part
 #ifdef AVB_1722_FORMAT_SAF
-	//TODO://This is hardcoded for 48k 32 bit 32 bit samples
-	SET_AVBTP_PROTOCOL_SPECIFIC(p1722Hdr, pStreamConfig->num_channels);
+    SET_AVBTP_PROTOCOL_SPECIFIC(p1722Hdr, pStreamConfig->num_channels);
     SET_AVBTP_GATEWAY_INFO(p1722Hdr, 0x02000920);
     SET_AVBTP_SUBTYPE(p1722Hdr, 2);
 #else
@@ -139,41 +137,17 @@ static void sample_copy_strided(int *src, unsigned int *dest, int stride, int n)
         dest += stride;
     }
 }
-static void sample_copy_strided_saf16(int *src, unsigned short *dest, int stride, int n) {
-    int i;
-    for (i = 0; i < n; i++) {
-        // 16 bit sample
-        unsigned short sample = (unsigned short ) (*src >> 8);  // reduce 24-bit to 16-bit sample
-
-        *dest = sample;
-        src += 1;
-        //simple_printf("0x%x\n",dest);
-        dest += stride;
-    }
-}
-
-#ifdef USE_XSCOPE
-// globals to store prev values
-unsigned prev_ptp_ts=0;
-unsigned prev_presentationTime=0;
-unsigned prev_valid=0;
-int prev_startIndex;
-
-#endif
-
-#ifdef AVB_TALKER_DEBUG_LOGIC
-#if(AVB_NUM_SOURCES>4)
-#error("Talker Debug Logic breaks the timing at > 4 Talker Streams");
-#endif
-unsigned prev_chan_presentationTime;
-int expected_rdIndex;
-unsigned rdIndex_prediction_count=0;
-char rdIndex_prediction_valid=0;
-#endif
 
 /** This receives user defined audio samples from local out stream and packetize
  *  them into specified AVB1722 transport packet.
  */
+
+
+#if (AVB_TALKER_XSCOPE_PROBES || AVB_TALKER_DEBUG_LOGIC)
+    static unsigned prev_ptp_ts;
+    static unsigned prev_ptp_ts_valid=0;
+#endif
+
 int avb1722_create_packet(unsigned char Buf0[],
         avb1722_Talker_StreamConfig_t *stream_info,
         ptp_time_info_mod64 *timeInfo,
@@ -198,11 +172,13 @@ int avb1722_create_packet(unsigned char Buf0[],
 #else
     unsigned int *dest = (unsigned int *) &Buf[(AVB_ETHERNET_HDR_SIZE + AVB_TP_HDR_SIZE + AVB_CIP_HDR_SIZE)];
 #endif
-    int stride = num_channels;
 
+    int stride = num_channels;
     unsigned ptp_ts = 0;
     int dbc;
     int pkt_data_length;
+
+
 
     if (stream_info->initial)
     {
@@ -243,8 +219,12 @@ int avb1722_create_packet(unsigned char Buf0[],
         if (need_more_data)
         {
             const int not_enough_data = media_input_fifo_fill_level(map[i]) < (2 * samples_per_fifo_packet);
-            if (not_enough_data)
+            if (not_enough_data) {
+#if AVB_TALKER_XSCOPE_PROBES
+        	    xscope_int(1, 1);
+#endif
                 return 0;
+            }
         }
     }
 
@@ -255,8 +235,12 @@ int avb1722_create_packet(unsigned char Buf0[],
     // Figure out if it is time to transmit a packet
     if (!stream_info->initial && !stream_info->transmit_ok) {
         int elapsed = time - stream_info->last_transmit_time;
-        if (elapsed < AVB1722_PACKET_PERIOD_TIMER_TICKS)
+        if (elapsed < AVB1722_PACKET_PERIOD_TIMER_TICKS) {
+#if AVB_TALKER_XSCOPE_PROBES
+    	    xscope_int(1, 2);
+#endif
             return 0;
+        }
 
         stream_info->transmit_ok = 1;
     }
@@ -269,11 +253,7 @@ int avb1722_create_packet(unsigned char Buf0[],
     num_audio_samples = samples_in_packet * num_channels;
 
 #ifdef AVB_1722_FORMAT_SAF
-#ifdef AVB_1722_FORMAT_SAF16
-    pkt_data_length = (num_audio_samples << 1); // 16-bit samples
-#else
     pkt_data_length = (num_audio_samples << 2);
-#endif
 #else
     pkt_data_length = AVB_CIP_HDR_SIZE + (num_audio_samples << 2);
 #endif
@@ -304,80 +284,72 @@ int avb1722_create_packet(unsigned char Buf0[],
         if (stream_info->samples_left_in_fifo_packet < samples_in_packet) {
             // Not enough samples left in fifo packet to fill the 1722 packet
             // therefore pull out remaining samples and get the next packet
-#ifdef XSCOPE_AVB_TALKER_PULL_FROM_FIFO_DURATION
-		    xscope_probe(14); // start
-#endif
-            for (i = 0; i < num_channels; i++) {
-                int *src = media_input_fifo_get_ptr(map[i]);
 
-#ifdef AVB_1722_FORMAT_SAF16
-				sample_copy_strided_saf16(src, dest, stride, stream_info->samples_left_in_fifo_packet);
-#else
+#if AVB_1722_TALKER_PERF_OPTIMISATION
+            for (i = 0; i < num_channels; i=i+2) {
+                int *src = media_input_fifo_get_ptr(map[i]);
                 sample_copy_strided(src, dest, stride, stream_info->samples_left_in_fifo_packet);
-#endif
                 media_input_fifo_release_packet(map[i]);
                 src = (int *)media_input_fifo_get_packet(map[i],
                         &presentationTime,
                         &(stream_info->dbc_at_start_of_last_fifo_packet));
                 media_input_fifo_set_ptr(map[i], src);
+                dest += 1;
 
+                src = media_input_fifo_get_ptr(map[i+1]);
+                sample_copy_strided(src, dest, stride, stream_info->samples_left_in_fifo_packet);
+                media_input_fifo_release_packet(map[i+1]);
+                src = (int *)media_input_fifo_get_packet(map[i+1],
+                        &presentationTime,
+                        &(stream_info->dbc_at_start_of_last_fifo_packet));
+                media_input_fifo_set_ptr(map[i+1], src);
+                dest += 1;
+            }
+            timerValid = 1;
+#else
+            for (i = 0; i < num_channels; i++) {
+                int *src = media_input_fifo_get_ptr(map[i]);
+                sample_copy_strided(src, dest, stride, stream_info->samples_left_in_fifo_packet);
+                media_input_fifo_release_packet(map[i]);
+                src = (int *)media_input_fifo_get_packet(map[i],
+                        &presentationTime,
+                        &(stream_info->dbc_at_start_of_last_fifo_packet));
+                media_input_fifo_set_ptr(map[i], src);
                 dest += 1;
                 timerValid = 1;
-#ifdef AVB_TALKER_DEBUG_LOGIC
-			   if(i>0 && presentationTime!=prev_chan_presentationTime) {
-#ifdef PRINT
-				  simple_printf("ERROR: Presentation time for channel %d : %d \n  differs from previous channel time : %d\n",
-						  i, presentationTime, prev_chan_presentationTime);
-#endif
-
-			   };
-			   prev_chan_presentationTime=presentationTime;
-
-#endif
             }
+#endif
 
-			timerValid = 1;
             dest += (stream_info->samples_left_in_fifo_packet - 1) * num_channels;
             samples_in_packet -= stream_info->samples_left_in_fifo_packet;
             stream_info->samples_left_in_fifo_packet = samples_per_fifo_packet;
-#ifdef XSCOPE_AVB_TALKER_PULL_FROM_FIFO_DURATION
-			xscope_probe(14);
-#endif
-#ifdef AVB_TALKER_DEBUG_LOGIC
-			if((stream_id0 & 0xF)==0) { // only for stream 0
-				volatile ififo_t *media_input_fifo =  (ififo_t *) map[num_channels-1];
-                volatile int packetSize;
-                if(rdIndex_prediction_valid) {
-					if(media_input_fifo->rdIndex != expected_rdIndex) {
-#ifdef PRINT
-						  simple_printf("ERROR: Expected rdIndex ptr 0x%x differs from actual 0x%x\n",expected_rdIndex, media_input_fifo->rdIndex);
-#endif
-					}
-                }
-                expected_rdIndex = media_input_fifo->rdIndex;
-                packetSize = media_input_fifo->packetSize*4; // byte address increment
-                expected_rdIndex+= packetSize;
-
-			    if (expected_rdIndex + packetSize > media_input_fifo->fifoEnd)
-			    	expected_rdIndex = (int *) &media_input_fifo->buf[0]; // wrap
-			    rdIndex_prediction_count++;
-			    rdIndex_prediction_valid=1;
-			}
-#endif
         }
     }
 
-    for (i = 0; i < num_channels; i++) {
+#if AVB_1722_TALKER_PERF_OPTIMISATION
+    // compiler doesn't unroll loop. Probably a C limitation
+    //#pragma loop unroll
+    //for (i = 0; i < (AVB_NUM_MEDIA_OUTPUTS/(AVB_NUM_SOURCES*AVB_NUM_TALKER_UNITS)); i++) {
+    // Note: This only works for an even number of channels !
+    for (i = 0; i < num_channels; i=i+2) {
         int *src = media_input_fifo_get_ptr(map[i]);
-#ifdef AVB_1722_FORMAT_SAF16
-        sample_copy_strided_saf16(src, dest, stride, samples_in_packet);
-#else
         sample_copy_strided(src, dest, stride, samples_in_packet);
         dest += 1;
-		dest += 1; // interleave samples from different channels.
-		// E.g. first 8 samples in 1722 buffer are first samples of all 8 channels.
+        media_input_fifo_set_ptr(map[i], src + samples_in_packet);
+
+        src = media_input_fifo_get_ptr(map[i+1]);
+        sample_copy_strided(src, dest, stride, samples_in_packet);
+        dest += 1;
         media_input_fifo_set_ptr(map[i], src + samples_in_packet);
     }
+#else
+    for (i = 0; i < num_channels; i++) {
+        int *src = media_input_fifo_get_ptr(map[i]);
+        sample_copy_strided(src, dest, stride, samples_in_packet);
+        dest += 1;
+        media_input_fifo_set_ptr(map[i], src + samples_in_packet);
+    }
+#endif
 
     stream_info->samples_left_in_fifo_packet -= samples_in_packet;
 
@@ -391,53 +363,36 @@ int avb1722_create_packet(unsigned char Buf0[],
         ptp_ts = local_timestamp_to_ptp_mod32(presentationTime, timeInfo);
         ptp_ts = ptp_ts + stream_info->presentation_delay;
 
-#ifdef USE_XSCOPE
-			if((stream_id0 & 0xF)==0) { // only for stream 0
-				if(prev_valid) {
-#ifdef XSCOPE_AVB_TALKER_CREATE_PACKET
-                    // trace only for stream 0
-                    xscope_probe_data(9, (int) (ptp_ts - prev_ptp_ts));
-					xscope_probe_data(10, (int) (presentationTime - prev_presentationTime));
-					xscope_probe_data(11, (unsigned) (presentationTime));
+#if (AVB_TALKER_XSCOPE_PROBES || AVB_TALKER_DEBUG_LOGIC)
+        if(prev_ptp_ts_valid) {
+        	// trace only for stream 0
+        	xscope_int(2, (int) (ptp_ts - prev_ptp_ts));
+#if AVB_TALKER_DEBUG_LOGIC
+        	int ptp_ts_delta = (int) (ptp_ts - prev_ptp_ts);
+        	if(ptp_ts_delta > AVG_PRESENTATION_TIME_DELTA+MAX_PRESENTATION_TIME_DELTA_DELTA ||
+        			ptp_ts_delta < AVG_PRESENTATION_TIME_DELTA-MAX_PRESENTATION_TIME_DELTA_DELTA) {
+#ifdef AVB_DEBUG_PRINT
+        		simple_printf("ERROR: Expecting ptp_ts (Presentation Time) to change between %d and %d. Actual change %d\n",
+        				AVG_PRESENTATION_TIME_DELTA-MAX_PRESENTATION_TIME_DELTA_DELTA,
+        				AVG_PRESENTATION_TIME_DELTA+MAX_PRESENTATION_TIME_DELTA_DELTA,
+        				ptp_ts_delta);
+        		//simple_printf("  from fifo values presentationTime %d, prev presentationTime %d\n", presentationTime, prev_presentationTime);
+        		//simple_printf("        hex values presentationTime 0x%x, prev presentationTime 0x%x\n", presentationTime, prev_presentationTime);
 #endif
-
-#ifdef AVB_TALKER_DEBUG_LOGIC
-					int ptp_ts_delta = (int) (ptp_ts - prev_ptp_ts);
-					if(ptp_ts_delta > AVG_PRESENTATION_TIME_DELTA+MAX_PRESENTATION_TIME_DELTA_DELTA ||
-					   ptp_ts_delta < AVG_PRESENTATION_TIME_DELTA-MAX_PRESENTATION_TIME_DELTA_DELTA) {
-#ifdef PRINT
-						  simple_printf("ERROR: Expecting ptp_ts (Presentation Time) to change between %d and %d. Actual change %d\n",
-								  AVG_PRESENTATION_TIME_DELTA-MAX_PRESENTATION_TIME_DELTA_DELTA,
-								  AVG_PRESENTATION_TIME_DELTA+MAX_PRESENTATION_TIME_DELTA_DELTA,
-								  ptp_ts_delta);
-						  simple_printf("  from fifo values presentationTime %d, prev presentationTime %d\n", presentationTime, prev_presentationTime);
-						  //simple_printf("        hex values presentationTime 0x%x, prev presentationTime 0x%x\n", presentationTime, prev_presentationTime);
+        	}
 #endif
-					}
-#endif
-
-				};
-			    prev_ptp_ts = ptp_ts;
-			    prev_presentationTime = presentationTime;
-
-			    prev_valid = 1;
-			}
+        }
+        prev_ptp_ts = ptp_ts;
+        prev_ptp_ts_valid = 1;
 #endif
     }
 
     // Update timestamp value and valid flag.
     AVB1722_AVBTP_HeaderGen(Buf, timerValid, ptp_ts, pkt_data_length, stream_info->sequence_number, stream_id0);
 
-#ifdef BUGFIX_12860
-    stream_info->last_transmit_time += AVB1722_PACKET_PERIOD_TIMER_TICKS;
-#else
-#endif
     stream_info->transmit_ok = 0;
-
     stream_info->sequence_number++;
-
     return (AVB_ETHERNET_HDR_SIZE + AVB_TP_HDR_SIZE + pkt_data_length);
 }
 
-#endif
 #endif
