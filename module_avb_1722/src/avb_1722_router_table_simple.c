@@ -48,7 +48,6 @@ int avb_1722_router_table_lookup_simple(int key0,
     __asm__(".xtaloop " STRINGIFY(AVB_NUM_SINKS) "\n");
     if (key0 == router_table[i].id[0] &&
         key1 == router_table[i].id[1]) {
-      *sink_local_id = router_table[i].sink_local_id;
       *link = router_table[i].link;
       hwlock_release(table_lock);
       return 1;
@@ -63,8 +62,7 @@ int avb_1722_router_table_lookup_simple(int key0,
 void avb_1722_router_table_add_entry_simple(int key0,
                                             int key1,
                                             int link,
-                                            int sink_num,
-                                            int sink_local_id)
+                                            int sink_num)
 {
   hwlock_acquire(table_lock);
   router_table[sink_num].id[0] = key0;

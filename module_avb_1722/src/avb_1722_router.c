@@ -31,14 +31,12 @@ void send_avb_1722_router_cmd(chanend,
                               unsigned,
                               unsigned,
                               unsigned,
-                              unsigned,
                               unsigned);
 
 int avb_1722_add_stream_mapping(chanend c_tx,
                                 unsigned int streamId[2],
                                 int link_num,
-                                int avb_hash,
-                                int sink_local_id)
+                                int avb_hash)
 {
   unsigned char *s = (unsigned char *) streamId;
   int key0 =
@@ -56,8 +54,7 @@ int avb_1722_add_stream_mapping(chanend c_tx,
                            key0,
                            key1,
                            avb_1722_links[link_num],
-                           avb_hash,
-                           sink_local_id);
+                           avb_hash);
 
   return 0;
 }
@@ -82,7 +79,6 @@ int avb_1722_disconnect_stream_mapping(chanend c_tx,
   send_avb_1722_router_cmd(c_tx,
                            key0,
                            key1,
-                           0,
                            0,
                            0);
   return 0;

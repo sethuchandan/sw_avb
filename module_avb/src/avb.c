@@ -456,7 +456,7 @@ int getset_avb_source_state(int set,
 #else
           printstr(stream_string); simple_printf("#%d ready\n", source_num);
 #endif
-#endif
+
 
         }
       }
@@ -470,7 +470,6 @@ int getset_avb_source_state(int set,
           (void) xc_abi_inuint(c); //ACK
 
           printstr(stream_string); simple_printf("#%d off\n", source_num);
-#endif
       }
       else if (source->stream.state == AVB_SOURCE_STATE_POTENTIAL &&
                *state == AVB_SOURCE_STATE_ENABLED) {
@@ -735,8 +734,7 @@ int getset_avb_sink_state(int set,
           avb_1722_add_stream_mapping(c_mac_tx,
                                       sink->stream.streamId,
                                       router_link,
-                                      sink_num,
-                                      sink->stream.local_id);
+                                      sink_num);
         }
 
 #ifndef AVB_EXCLUDE_MVRP
