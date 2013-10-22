@@ -12,24 +12,13 @@
 #include <xs1.h>
  #include <xscope.h>
 #include "avb_conf.h"
-#include "simple_printf.h"
-#include "xscope.h"
+
+//#define AVB_1722_RECORD_ERRORS
 
 #if defined(AVB_1722_FORMAT_SAF) || defined(AVB_1722_FORMAT_61883_6)
 
 #ifdef AVB_1722_RECORD_ERRORS
-#if(AVB_NUM_SINKS>4)
-#error("Listener Debug Logic breaks the timing at > 4 Listener Streams")
-#endif
 static unsigned avb_1722_listener_dbc_discontinuity = 0;
-static unsigned char avb_1722_listener_prev_seq_num[AVB_NUM_SINKS];  // store prev seq_number per stream
-static unsigned avb_1722_listener_seq_num_discountinuity[AVB_NUM_SINKS];
-static unsigned avb_1722_listener_seq_started[AVB_NUM_SINKS];
-#endif
-
-#ifdef USE_XSCOPE
-char prev_avbtp_ts_valid=0;
-unsigned prev_avbtp_timestamp;
 #endif
 
 int avb_1722_listener_process_packet(chanend buf_ctl,
@@ -75,7 +64,8 @@ int avb_1722_listener_process_packet(chanend buf_ctl,
     return (0);
   }
 
-#ifdef AVB_1722_RECORD_ERRORS
+//#ifdef AVB_1722_RECORD_ERRORS
+#if 0
    {
  	   // log discontinuities in seq_number per stream
        int unique_stream_idx = stream_info->unique_idx;
@@ -112,11 +102,7 @@ int avb_1722_listener_process_packet(chanend buf_ctl,
 
   pktDataLength = NTOH_U16(pAVBHdr->packet_data_length);
 #if AVB_1722_FORMAT_SAF
- #if AVB_1722_FORMAT_SAF16
-   num_samples_in_payload = pktDataLength>>1; // two octets hold one 16-bit sample
- #else
   num_samples_in_payload = pktDataLength>>2;
- #endif
 #else
   num_samples_in_payload = (pktDataLength-8)>>2;
 #endif
@@ -172,7 +158,7 @@ int avb_1722_listener_process_packet(chanend buf_ctl,
 
     return 0;
   }
-#if(AVB_1722_RECORD_ERRORS && !AVB_1722_FORMAT_SAF)
+#ifdef AVB_1722_RECORD_ERRORS
   else if (dbc_diff != num_samples_in_payload)
   {
     avb_1722_listener_dbc_discontinuity++;
@@ -214,16 +200,8 @@ int avb_1722_listener_process_packet(chanend buf_ctl,
       {
         media_output_fifo_set_ptp_timestamp(map[i], AVBTP_TIMESTAMP(pAVBHdr), sample_num);
       }
-#ifdef USE_XSCOPE_PROBES
-	   if((AVBTP_STREAM_ID0(pAVBHdr)&0xF) == 0) { // reduce probing to workaround xscope issue
-		  if(prev_avbtp_ts_valid) {
-	         xscope_probe_data(8, (signed) (AVBTP_TIMESTAMP(pAVBHdr) - prev_avbtp_timestamp));
-		  }
-		  prev_avbtp_timestamp = AVBTP_TIMESTAMP(pAVBHdr);
-		  prev_avbtp_ts_valid = 1;
-	   }
-#endif
     }
+    //xscope_int(3, AVBTP_TIMESTAMP(pAVBHdr));
   }
 
   for (i=0; i<num_channels; i++)
@@ -254,6 +232,7 @@ int avb_1722_listener_process_packet(chanend buf_ctl,
     num_channels :
     num_channels_in_payload;
 
+#pragma loop unroll
   for(i=0; i<num_channels; i++)
   {
     if (map[i])

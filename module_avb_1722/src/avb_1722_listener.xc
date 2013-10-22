@@ -19,8 +19,6 @@
 #include "avb_unit.h"
 #include "mac_filter.h"
 #include "avb_conf.h"
-#include "xscope.h"
-#include "simple_printf.h"
 
 #define TIMEINFO_UPDATE_INTERVAL 50000000
 
@@ -36,6 +34,7 @@
 #ifdef AVB_1722_FORMAT_61883_6
 #define MAX_PKT_BUF_SIZE_LISTENER (AVB_ETHERNET_HDR_SIZE + AVB_TP_HDR_SIZE + AVB_CIP_HDR_SIZE + TALKER_NUM_AUDIO_SAMPLES_PER_CHANNEL_PER_AVB1722_PKT * AVB_MAX_CHANNELS_PER_LISTENER_STREAM * 4 + 4)
 #endif
+
 
 static void configure_stream(chanend c,
                              avb_1722_stream_info_t &s)
@@ -102,10 +101,6 @@ void avb_1722_listener_init(chanend c_mac_rx,
                             avb_1722_listener_state_t &st,
                             int num_streams)
 {
-#ifdef AVB_1722_DEBUG_SHOW_FIRST_PACKET
-	int seen_router_link = -1;
-#endif
-
   // register how many streams this listener unit has
   st.router_link = avb_register_listener_streams(c_listener_ctl, num_streams);
 
@@ -141,19 +136,9 @@ void avb_1722_listener_handle_packet(chanend c_mac_rx,
   pktByteCnt -= 4;
   avb_hash = RxBuf[1];
 
-#ifdef USE_XSCOPE_PROBES
-			xscope_probe(0); // start
-#endif
   // process the audio packet if enabled.
   if (avb_hash < MAX_AVB_STREAMS_PER_LISTENER &&
       st.listener_streams[avb_hash].active) {
-#ifdef AVB_1722_DEBUG_SHOW_FIRST_PACKET
-			    //xscope_probe_data(21, router_link);
-			    if(router_link!=seen_router_link) {
-			      simple_printf("Listener with router_link 0x%x Processing first 1722 packet!!!!\n", router_link);
-			      seen_router_link = router_link;
-                }
-#endif
     // process the current packet
     avb_1722_listener_process_packet(c_buf_ctl,
                                      (RxBuf, unsigned char[]),
@@ -163,9 +148,6 @@ void avb_1722_listener_handle_packet(chanend c_mac_rx,
                                      avb_hash,
                                      st.notified_buf_ctl);
   }
-#ifdef USE_XSCOPE_PROBES
-			xscope_probe(0); // stop
-#endif
 }
 
 
@@ -185,9 +167,6 @@ void avb_1722_listener_handle_cmd(chanend c_listener_ctl,
         configure_stream(c_listener_ctl,
                          st.listener_streams[stream_num]);
         c_listener_ctl <: AVB1722_ACK;
-#ifdef AVB_1722_DEBUG_LISTENER_CONFIG
-                simple_printf("AVB1722_CONFIGURE_LISTENER_STREAM Stream %d for Listener with router_link 0x%x\n",stream_num,router_link);
-#endif
         break;
       }
     case AVB1722_ADJUST_LISTENER_STREAM:

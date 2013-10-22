@@ -19,15 +19,10 @@
 #include "avb_unit.h"
 #include "avb_conf.h"
 #include <xscope.h>
-#include "simple_printf.h"
-
-#define AVB_TALKER_SENT_FRAME_THRESHOLD 10000
 
 #if AVB_NUM_SOURCES != 0
 
 #pragma unsafe arrays
-static avb1722_Talker_StreamConfig_t talker_streams[AVB_MAX_STREAMS_PER_TALKER_UNIT];
-
 static void configure_stream(chanend avb1722_tx_config,
                avb1722_Talker_StreamConfig_t &stream,
                unsigned char mac_addr[]) {
@@ -117,12 +112,6 @@ static void stop_stream(avb1722_Talker_StreamConfig_t &stream) {
   media_input_fifo_disable_fifos(stream.fifo_mask);
   stream.active = 1;
 }
-
-
-#ifdef DEBUG_AVB_TALKER_SENT_FRAMES
-	int packets_sent[AVB_MAX_STREAMS_PER_TALKER_UNIT];
-	for(unsigned i=0; i<AVB_MAX_STREAMS_PER_TALKER_UNIT; i++) packets_sent[i]=0;
-#endif
 
 
 void avb_1722_talker_init(chanend c_talker_ctl,
@@ -227,20 +216,30 @@ void avb_1722_talker_send_packets(chanend c_mac_tx,
     int t;
 
     tmr :> t;
-
+#if AVB_TALKER_XSCOPE_PROBES
+    xscope_start(4);
+#endif
     packet_size =
       avb1722_create_packet((st.TxBuf, unsigned char[]),
                             st.talker_streams[st.cur_avb_stream],
                             timeInfo,
                             t);
+#if AVB_TALKER_XSCOPE_PROBES
+    xscope_stop(4);
+#endif
 
     if (packet_size) {
       if (packet_size < 60) packet_size = 60;
+#if AVB_TALKER_XSCOPE_PROBES
+      xscope_start(3);
+#endif
       ethernet_send_frame_offset2(c_mac_tx,
                                   st.TxBuf,
                                   packet_size,
                                   0);
-
+#if AVB_TALKER_XSCOPE_PROBES
+      xscope_stop(3);
+#endif
       st.talker_streams[st.cur_avb_stream].last_transmit_time = t;
 
     }
