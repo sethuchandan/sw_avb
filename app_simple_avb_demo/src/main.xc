@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <xscope.h>
-#include "audio_i2s.h"
 #include "avb_xscope.h"
 #include "i2c.h"
 #include "avb.h"
@@ -13,10 +12,23 @@
 #include "audio_codec_CS4270.h"
 #include "simple_printf.h"
 #include "media_fifo.h"
+
 #include "ethernet_board_support.h"
 #include "simple_demo_controller.h"
 #include "avb_1722_1_adp.h"
-#include "app_config.h"
+#include "avb_conf.h"
+
+#include "audio_clock_CS2300CP.h"
+
+#define AVB_USE_XSCOPE_PROBES 0
+
+#if(AVB_AUDIO_IF_i2s)
+#include "audio_i2s.h"
+#endif
+#if(AVB_AUDIO_IF_tdm_multi)
+#include "tdm_multi.h"
+#include <xports-i2s.h>
+#endif
 
 // This is the number of master clocks in a word clock
 #define MASTER_TO_WORDCLOCK_RATIO 512
@@ -44,6 +56,12 @@ in port p_buttons = PORT_BUTTONS;
 
 void demo(chanend c_rx, chanend c_tx, chanend c_gpio_ctl);
 void gpio_task(chanend c_gpio_ctl);
+void ptp_server_and_gpio(chanend c_rx,
+        chanend c_tx,
+        chanend c_ptp[],
+        int num_ptp,
+        enum ptp_server_type server_type,
+        chanend c_gpio_ctl);
 
 //***** Ethernet Configuration ****
 // Here are the port definitions required by ethernet
@@ -65,7 +83,13 @@ on tile[AVB_I2C_TILE]: port r_i2c = PORT_I2C;
 on tile[AVB_I2C_TILE]: struct r_i2c r_i2c = { PORT_I2C_SCL, PORT_I2C_SDA };
 #endif
 
+#if COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
 on tile[AVB_AUDIO_TILE]: out buffered port:32 p_fs[1] = { PORT_SYNC_OUT };
+#else
+on tile[AVB_AUDIO_TILE]: out port p_fs[1] = { PORT_SYNC_OUT };
+#endif
+
+#if(AVB_AUDIO_IF_i2s)
 on tile[AVB_AUDIO_TILE]: i2s_ports_t i2s_ports =
 {
   XS1_CLKBLK_3,
@@ -74,10 +98,82 @@ on tile[AVB_AUDIO_TILE]: i2s_ports_t i2s_ports =
   PORT_SCLK,
   PORT_LRCLK
 };
+on tile[AVB_AUDIO_TILE]: out buffered port:32 p_aud_dout[AVB_NUM_AUDIO_SDATA_OUT] = PORT_SDATA_OUT;
 
-on tile[AVB_AUDIO_TILE]: out buffered port:32 p_aud_dout[AVB_DEMO_NUM_CHANNELS/2] = PORT_SDATA_OUT;
+on tile[AVB_AUDIO_TILE]: in buffered port:32 p_aud_din[AVB_NUM_AUDIO_SDATA_IN] = PORT_SDATA_IN;
+#endif
 
-on tile[AVB_AUDIO_TILE]: in buffered port:32 p_aud_din[AVB_DEMO_NUM_CHANNELS/2] = PORT_SDATA_IN;
+#if(AVB_AUDIO_IF_tdm_multi)
+on tile[AVB_AUDIO_TILE]: xports_i2s__context_t tdm_audio_if = {
+  XS1_CLKBLK_3,
+  XS1_CLKBLK_4,
+  PORT_MCLK,
+  PORT_SCLK,
+  PORT_LRCLK,
+  PORT_SDATA_OUT,
+  PORT_SDATA_IN,
+};
+#endif
+
+#if(AVB_NUM_SDATA_OUT>0)
+#define P_AUD_DOUT p_aud_dout
+on tile[0]: out buffered port:32 p_aud_dout[AVB_NUM_SDATA_OUT] = {
+		PORT_SDATA_OUT0,
+#if(AVB_NUM_SDATA_OUT>1)
+		PORT_SDATA_OUT1,
+#endif
+#if(AVB_NUM_SDATA_OUT>2)
+		PORT_SDATA_OUT2,
+#endif
+#if(AVB_NUM_SDATA_OUT>3)
+		PORT_SDATA_OUT3,
+#endif
+#if(AVB_NUM_SDATA_OUT>4)
+		PORT_SDATA_IN3,
+#endif
+#if(AVB_NUM_SDATA_OUT>5)
+		PORT_SDATA_IN2,
+#endif
+#if(AVB_NUM_SDATA_OUT>6)
+		PORT_SDATA_IN1,
+#endif
+#if(AVB_NUM_SDATA_OUT>7)
+        PORT_SDATA_IN0,
+#endif
+};
+#else
+#define P_AUD_DOUT null
+#endif
+
+#if(AVB_NUM_SDATA_IN>0)
+#define P_AUD_DIN p_aud_din
+on tile[0]: in buffered port:32 p_aud_din[AVB_NUM_SDATA_IN] = {
+		PORT_SDATA_IN0,
+#if(AVB_NUM_SDATA_IN>1)
+		PORT_SDATA_IN1,
+#endif
+#if(AVB_NUM_SDATA_IN>2)
+		PORT_SDATA_IN2,
+#endif
+#if(AVB_NUM_SDATA_IN>3)
+		PORT_SDATA_IN3,
+#endif
+#if(AVB_NUM_SDATA_IN>4)
+		PORT_SDATA_OUT3,
+#endif
+#if(AVB_NUM_SDATA_IN>5)
+		PORT_SDATA_OUT2,
+#endif
+#if(AVB_NUM_SDATA_IN>6)
+		PORT_SDATA_OUT1,
+#endif
+#if(AVB_NUM_SDATA_IN>7)
+        PORT_SDATA_OUT0,
+#endif
+};
+#else
+#define P_AUD_DIN null
+#endif
 
 #if AVB_XA_SK_AUDIO_PLL_SLICE
 on tile[AVB_AUDIO_TILE]: out port p_audio_shared = PORT_AUDIO_SHARED;
@@ -95,9 +191,51 @@ media_input_fifo_t ififos[AVB_NUM_MEDIA_INPUTS];
 #if ENABLE_XSCOPE
 void xscope_user_init(void)
 {
-  xscope_register_no_probes();
+#if AVB_USE_XSCOPE_PROBES
+#if 0
+   xscope_register(4,
+                   XSCOPE_CONTINUOUS, "diff outgoing - prestentation time", XSCOPE_INT, "ns",
+                   XSCOPE_CONTINUOUS, "local timestamp audio interface", XSCOPE_UINT, "timestamp",
+                   XSCOPE_CONTINUOUS, "channel 0", XSCOPE_UINT, "samples",
+                   XSCOPE_CONTINUOUS, "1722 ptp timestamp Listener", XSCOPE_UINT, "timestamp"
+                   );
+#elif 0
+   // makes XScope hang in 0x00014e1e in xscope_constructor ()
+   xscope_register(5,
+                   XSCOPE_CONTINUOUS, "Clock Recovery diff", XSCOPE_INT, "ns",
+                   XSCOPE_CONTINUOUS, "local_timestamp", XSCOPE_UINT, "refclk_cycles",
+                   XSCOPE_CONTINUOUS, "channel_0", XSCOPE_UINT, "sample_value",
+                   XSCOPE_CONTINUOUS, "Listener 1722 ptp timestamp", XSCOPE_UINT, "refclk_cycles",
+                   XSCOPE_CONTINUOUS, "Talker ptp_ts delta", XSCOPE_UINT, "ns"
+                   );
+#else
+#if (AVB_TALKER_XSCOPE_PROBES && AVB_LISTENER_XSCOPE_PROBES)
+#error "Due to xscope bug, AVB_TALKER_XSCOPE_PROBES and AVB_LISTENER_XSCOPE_PROBES cannot coexist"
+#endif
+#if AVB_TALKER_XSCOPE_PROBES
+   xscope_register(5,
+           XSCOPE_CONTINUOUS, "ififo: overflow discarded timestamp", XSCOPE_UINT, "uint",
+           XSCOPE_CONTINUOUS, "T: return 0", XSCOPE_UINT, "uint",
+           XSCOPE_CONTINUOUS, "T: ptp_ts delta", XSCOPE_UINT, "ns",
+           XSCOPE_STARTSTOP, "T: to MAC",  XSCOPE_UINT, "Units",
+           XSCOPE_STARTSTOP, "T: create pkt",  XSCOPE_UINT, "Units"
+   );
+#endif
+#if AVB_LISTENER_XSCOPE_PROBES
+   xscope_register(2,
+		   XSCOPE_CONTINUOUS, "Clock Recovery: diff", XSCOPE_INT, "ns",
+		   XSCOPE_CONTINUOUS, "Clock Recovery: wordlen", XSCOPE_UINT, "uint"
+   );
+#endif
+
+#endif
+#else
+   xscope_register_no_probes();
+#endif
+
   // Enable XScope printing
   xscope_config_io(XSCOPE_IO_BASIC);
+
 }
 #endif
 
@@ -114,6 +252,12 @@ void audio_hardware_setup(void)
 #endif
 }
 
+#if COMBINE_MEDIA_CLOCK_AND_PTP
+#define AVB_NUM_PTP_CLIENTS 1 + AVB_DEMO_ENABLE_TALKER
+#else
+#define AVB_NUM_PTP_CLIENTS 2 + AVB_DEMO_ENABLE_TALKER
+#endif
+
 int main(void)
 {
   // Ethernet channels
@@ -121,7 +265,8 @@ int main(void)
   chan c_mac_rx[2 + AVB_DEMO_ENABLE_LISTENER];
 
   // PTP channels
-  chan c_ptp[1 + AVB_DEMO_ENABLE_TALKER];
+
+  chan c_ptp[AVB_NUM_PTP_CLIENTS];
 
   // AVB unit control
 #if AVB_DEMO_ENABLE_TALKER
@@ -135,6 +280,9 @@ int main(void)
 
   // Media control
   chan c_media_ctl[AVB_NUM_MEDIA_UNITS];
+#if !COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
+  chan c_clk_ctl[AVB_NUM_MEDIA_UNITS];
+#endif
   chan c_media_clock_ctl;
 
   chan c_gpio_ctl;
@@ -147,19 +295,31 @@ int main(void)
                                         c_mac_tx, 2 + AVB_DEMO_ENABLE_TALKER);
 
     on tile[AVB_AUDIO_TILE]: media_clock_server(c_media_clock_ctl,
+#if COMBINE_MEDIA_CLOCK_AND_PTP
                                    null,
+#else
+                                   c_ptp[2],
+#endif
                                    #if AVB_DEMO_ENABLE_LISTENER
                                    c_buf_ctl,
                                    #else
                                    null,
                                    #endif
                                    AVB_NUM_LISTENER_UNITS,
-                                   p_fs,
-                                   c_mac_rx[0],
+#if COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
+                                   p_fs
+#else
+                                   c_clk_ctl,
+                                   AVB_NUM_MEDIA_CLOCKS
+#endif
+#if COMBINE_MEDIA_CLOCK_AND_PTP
+                                   ,c_mac_rx[0],
                                    c_mac_tx[0],
                                    c_ptp,
-                                   1 + AVB_DEMO_ENABLE_TALKER,
-                                   PTP_GRANDMASTER_CAPABLE);
+                                   AVB_NUM_PTP_CLIENTS,
+                                   PTP_GRANDMASTER_CAPABLE
+#endif
+                                   );
 
 
     // AVB - Audio
@@ -185,8 +345,10 @@ int main(void)
 #if AVB_DEMO_ENABLE_LISTENER
       init_media_output_fifos(ofifos, ofifo_data, AVB_NUM_MEDIA_OUTPUTS);
 #endif
-      i2s_master(i2s_ports,
 
+
+#if(AVB_AUDIO_IF_i2s)
+		i2s_master(i2s_ports,
                  #if AVB_DEMO_ENABLE_TALKER
                  p_aud_din, AVB_NUM_MEDIA_INPUTS,
                  #else
@@ -214,6 +376,30 @@ int main(void)
                  #endif
                  c_media_ctl[0],
                  0);
+#endif
+
+#if(AVB_AUDIO_IF_tdm_multi)
+		tdm_master_multi(
+                tdm_audio_if,
+                AVB_NUM_MEDIA_INPUTS,
+                AVB_NUM_MEDIA_OUTPUTS,
+				MASTER_TO_WORDCLOCK_RATIO,
+#if AVB_DEMO_ENABLE_TALKER
+				ififos,
+#else
+				null,
+#endif
+
+#if AVB_DEMO_ENABLE_LISTENER
+				ofifos,
+#else
+				null,
+#endif
+				c_media_ctl[0],
+				0
+		);
+#endif
+
     }
 
 #if AVB_DEMO_ENABLE_TALKER
@@ -233,7 +419,20 @@ int main(void)
                                               AVB_NUM_SINKS);
 #endif
 
+#if COMBINE_MEDIA_CLOCK_AND_PTP
     on tile[AVB_GPIO_TILE]: gpio_task(c_gpio_ctl);
+#else
+    on tile[AVB_GPIO_TILE]: ptp_server_and_gpio(
+    		c_mac_rx[0],
+    		c_mac_tx[0],
+    		c_ptp,
+    		AVB_NUM_PTP_CLIENTS,
+    		PTP_GRANDMASTER_CAPABLE,
+    		c_gpio_ctl);
+#endif
+#if !COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER
+    on tile[AVB_AUDIO_TILE]: audio_gen_CS2300CP_clock(p_fs[0], c_clk_ctl[0]);
+#endif
 
     // Application
     on tile[AVB_CONTROL_TILE]:
@@ -322,6 +521,77 @@ void gpio_task(chanend c_gpio_ctl)
 #endif
 }
 
+void ptp_server_and_gpio(chanend c_rx,
+        chanend c_tx,
+        chanend c_ptp[],
+        int num_ptp,
+        enum ptp_server_type server_type,
+        chanend c_gpio_ctl)
+{
+#if !AVB_XA_SK_AUDIO_PLL_SLICE
+  int button_val;
+  int buttons_active = 1;
+  int toggle_remote = 0;
+  unsigned buttons_timeout;
+  int selected_chan = 0;
+  timer button_tmr;
+  timer ptp_tmr;
+  int ptp_timeout;
+
+  p_mute_led_remote <: ~0;
+  p_chan_leds <: ~(1 << selected_chan);
+  p_buttons :> button_val;
+
+  ptp_server_init(c_rx, c_tx, server_type, ptp_tmr, ptp_timeout);
+
+  while (1)
+  {
+    select
+    {
+	  do_ptp_server(c_rx, c_tx, c_ptp, num_ptp, ptp_tmr, ptp_timeout);
+
+      case buttons_active => p_buttons when pinsneq(button_val) :> unsigned new_button_val:
+        if ((button_val & STREAM_SEL) == STREAM_SEL && (new_button_val & STREAM_SEL) == 0)
+        {
+          c_gpio_ctl <: STREAM_SEL;
+          buttons_active = 0;
+        }
+        if ((button_val & REMOTE_SEL) == REMOTE_SEL && (new_button_val & REMOTE_SEL) == 0)
+        {
+          c_gpio_ctl <: REMOTE_SEL;
+          toggle_remote = !toggle_remote;
+          buttons_active = 0;
+          p_mute_led_remote <: (~0) & ~(toggle_remote<<1);
+        }
+        if ((button_val & CHAN_SEL) == CHAN_SEL && (new_button_val & CHAN_SEL) == 0)
+        {
+          selected_chan++;
+          if (selected_chan > ((AVB_NUM_MEDIA_OUTPUTS>>1)-1))
+          {
+            selected_chan = 0;
+          }
+          p_chan_leds <: ~(1 << selected_chan);
+          c_gpio_ctl <: CHAN_SEL;
+          c_gpio_ctl <: selected_chan;
+          buttons_active = 0;
+        }
+        if (!buttons_active)
+        {
+          button_tmr :> buttons_timeout;
+          buttons_timeout += BUTTON_TIMEOUT_PERIOD;
+        }
+        button_val = new_button_val;
+        break;
+      case !buttons_active => button_tmr when timerafter(buttons_timeout) :> void:
+        buttons_active = 1;
+        p_buttons :> button_val;
+        break;
+    }
+  }
+#endif
+}
+
+
 /** The main application control task **/
 void demo(chanend c_rx, chanend c_tx, chanend c_gpio_ctl)
 {
@@ -345,7 +615,9 @@ void demo(chanend c_rx, chanend c_tx, chanend c_gpio_ctl)
   {
     set_avb_source_channels(j, channels_per_stream);
     for (int i = 0; i < channels_per_stream; i++)
-      map[i] = j ? j*(channels_per_stream)+i  : j+i;
+    	map[i] = j ? j*(channels_per_stream)+i  : j+i;
+        //Todo: This may be logically equivalent: map[i] = j*(channels_per_stream)+i;
+
     set_avb_source_map(j, map, channels_per_stream);
     set_avb_source_format(j, AVB_SOURCE_FORMAT_MBLA_24BIT, sample_rate);
     set_avb_source_sync(j, 0); // use the media_clock defined above
