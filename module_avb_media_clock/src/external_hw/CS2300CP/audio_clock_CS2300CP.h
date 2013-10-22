@@ -3,7 +3,6 @@
 #define _audio_clock_CS2300CP_h_
 #include "i2c.h"
 
-
 void audio_clock_CS2300CP_init(
                         #if I2C_COMBINE_SCL_SDA
                             port r_i2c
@@ -11,5 +10,7 @@ void audio_clock_CS2300CP_init(
                             struct r_i2c &r_i2c
                         #endif
                         ,unsigned mclks_per_wordclk);
+
+void audio_gen_CS2300CP_clock(out port p, chanend clk_ctl);
 
 #endif
