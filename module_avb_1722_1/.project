@@ -74,7 +74,3 @@
     </natures>
 </projectDescription>
 
-
-		<nature>com.xmos.cdt.core.XdeProjectNature</nature>
-	</natures>
-</projectDescription>

@@ -156,10 +156,9 @@
 								<option id = "com.xmos.xc.compiler.option.include.paths.24784525" name="com.xmos.xc.compiler.option.include.paths" superClass="com.xmos.xc.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${XMOS_TOOL_PATH}/target/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${XMOS_TOOL_PATH}/target/include/gcc&quot;"/>
-                                    <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/results}&quot;' />
+                                    <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/.settings}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/D4U-AVB-DG}&quot;' />
-<listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/SLICEKIT-L2-XXX}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/SLICEKIT-L2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/XR-AVB-LC-BRD}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info}&quot;' />
@@ -177,6 +176,7 @@
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/i2s}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/spdif}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/synth}&quot;' />
+<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm_multi}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/media_fifos}&quot;' />
@@ -192,6 +192,7 @@
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_util/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_util}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb}&quot;' />
+<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/.settings}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src/common}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src/full}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src/include}&quot;' />
@@ -199,13 +200,13 @@
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/D4U-AVB-DG}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/SLICEKIT-L16}&quot;' />
-<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/SLICEKIT-L2-XXX}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/SLICEKIT-L2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/XC-2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/XP-MC-CTRL-L2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/XR-AVB-LC-BRD}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/common}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support}&quot;' />
+<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_smi/.settings}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_smi/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_smi}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet}&quot;' />
@@ -334,10 +335,9 @@
 								<option id = "com.xmos.c.compiler.option.include.paths.57334604" name="com.xmos.c.compiler.option.include.paths" superClass="com.xmos.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${XMOS_TOOL_PATH}/target/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${XMOS_TOOL_PATH}/target/include/gcc&quot;"/>
-                                    <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/results}&quot;' />
+                                    <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/.settings}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/D4U-AVB-DG}&quot;' />
-<listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/SLICEKIT-L2-XXX}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/SLICEKIT-L2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/XR-AVB-LC-BRD}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info}&quot;' />
@@ -355,6 +355,7 @@
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/i2s}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/spdif}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/synth}&quot;' />
+<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm_multi}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/media_fifos}&quot;' />
@@ -370,6 +371,7 @@
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_util/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_util}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb}&quot;' />
+<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/.settings}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src/common}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src/full}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src/include}&quot;' />
@@ -377,13 +379,13 @@
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/D4U-AVB-DG}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/SLICEKIT-L16}&quot;' />
-<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/SLICEKIT-L2-XXX}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/SLICEKIT-L2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/XC-2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/XP-MC-CTRL-L2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/XR-AVB-LC-BRD}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/common}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support}&quot;' />
+<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_smi/.settings}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_smi/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_smi}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet}&quot;' />
@@ -518,10 +520,9 @@
 									<listOptionValue builtIn="false" value="&quot;${XMOS_TOOL_PATH}/target/include/gcc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${XMOS_TOOL_PATH}/target/include/c++/4.2.1&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${XMOS_TOOL_PATH}/target/include/c++/4.2.1/xcore-xmos-elf&quot;"/>
-                                    <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/results}&quot;' />
+                                    <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/.settings}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/D4U-AVB-DG}&quot;' />
-<listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/SLICEKIT-L2-XXX}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/SLICEKIT-L2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info/XR-AVB-LC-BRD}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/app_simple_avb_demo/xmos_board_info}&quot;' />
@@ -539,6 +540,7 @@
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/i2s}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/spdif}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/synth}&quot;' />
+<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm_multi}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/interfaces}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_audio/src/media_fifos}&quot;' />
@@ -554,6 +556,7 @@
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_util/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb_util}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_avb}&quot;' />
+<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/.settings}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src/common}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src/full}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src/include}&quot;' />
@@ -561,13 +564,13 @@
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/D4U-AVB-DG}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/SLICEKIT-L16}&quot;' />
-<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/SLICEKIT-L2-XXX}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/SLICEKIT-L2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/XC-2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/XP-MC-CTRL-L2}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/XR-AVB-LC-BRD}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support/common}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_board_support}&quot;' />
+<listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_smi/.settings}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_smi/src}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet_smi}&quot;' />
 <listOptionValue builtIn="false" value='&quot;${workspace_loc:/module_ethernet}&quot;' />
