@@ -30,7 +30,6 @@
 // and listener). Therefore the number of attributes needed is:
 // (nTalkers * 3) + (nListeners * 3) + (nDomains=1) + AVB_MAX_NUM_VLAN + AVB_MAX_MMRP_GROUPS
 #define MRP_MAX_ATTRS ((3*(AVB_NUM_SOURCES)) + (3*(AVB_NUM_SINKS)) + 1 + (AVB_MAX_NUM_VLAN))
-
 #endif
 
 #define MRP_FULL_PARTICIPANT 1

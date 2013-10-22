@@ -8,7 +8,7 @@
 #include "avb_1722_router_table.h"
 #include "avb_srp.h"
 #include "print.h"
-static chanend avb_1722_links[MAX_AVB_1722_ROUTER_LINKS] = {0, 1, 2, 3};
+static chanend avb_1722_links[MAX_AVB_1722_ROUTER_LINKS];
 
 void avb_1722_register_routes(chanend link0,
                              chanend link1,

@@ -1,8 +1,8 @@
 AVB Software Stack
 ..................
 
-:Latest release: 5.2.1rc1
-:Maintainer: XMOS
+:Version: 5.2.1rc1
+:Vendor: XMOS
 :Description: AVB software stack
 
 
@@ -27,17 +27,25 @@ codecs. The Stream Reservation Protocol is used to reserve bandwidth through 802
 Known Issues
 ============
 
-Support
-=======
-
-The HEAD of this repository is a work in progress. It may or may not compile from time to time, and modules, code and features may be incomplete. For a stable, supported release please see the reference designs section at www.xmos.com.
-
 Required software (dependencies)
 ================================
 
-  * sc_i2c (https://github.com/xcore/sc_i2c.git)
-  * sc_util (git@github.com:xcore/sc_util)
-  * sc_slicekit_support (origin)
-  * sc_otp (git@github.com:xcore/sc_otp)
-  * sc_ethernet (https://github.com/xcore/sc_ethernet.git)
+  * sc_i2c
+  * sc_util
+  * sc_slicekit_support
+  * sc_otp
+  * sc_ethernet
+
+Documentation
+=============
+
+You can find the documentation for this software in the doc/ directory of the package.
+
+Support
+=======
+
+  This package is support by XMOS Ltd. Issues can be raised against the software
+  at:
+
+      http://www.xmos.com/support
 

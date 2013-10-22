@@ -158,13 +158,11 @@
 									<listOptionValue builtIn="false" value="&quot;${XMOS_TOOL_PATH}/target/include/gcc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/.settings}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/common}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/full}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/lite}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet_smi/.settings}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet_smi/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet_smi}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet}&quot;"/>
@@ -284,13 +282,11 @@
 									<listOptionValue builtIn="false" value="&quot;${XMOS_TOOL_PATH}/target/include/gcc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/.settings}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/common}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/full}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/lite}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet_smi/.settings}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet_smi/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet_smi}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet}&quot;"/>
@@ -416,13 +412,11 @@
 									<listOptionValue builtIn="false" value="&quot;${XMOS_TOOL_PATH}/target/include/c++/4.2.1/xcore-xmos-elf&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/.settings}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/common}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/full}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src/lite}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet_smi/.settings}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet_smi/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet_smi}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_ethernet}&quot;"/>

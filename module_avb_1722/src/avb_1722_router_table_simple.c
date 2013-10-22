@@ -9,13 +9,11 @@
 #include "hwlock.h"
 #include "string.h"
 #include "avb_1722_router_table.h"
-#include "simple_printf.h"
 
 typedef struct avb_1722_router_table_entry_t
 {
   int id[2];
   int link;
-  int sink_local_id;
 } avb_1722_router_table_entry_t;
 
 static avb_1722_router_table_entry_t router_table[AVB_NUM_SINKS];
@@ -48,6 +46,7 @@ int avb_1722_router_table_lookup_simple(int key0,
     __asm__(".xtaloop " STRINGIFY(AVB_NUM_SINKS) "\n");
     if (key0 == router_table[i].id[0] &&
         key1 == router_table[i].id[1]) {
+      *sink_num = i;
       *link = router_table[i].link;
       hwlock_release(table_lock);
       return 1;
@@ -69,10 +68,6 @@ void avb_1722_router_table_add_entry_simple(int key0,
   router_table[sink_num].id[1] = key1;
   router_table[sink_num].link = link;
   hwlock_release(table_lock);
-#ifdef AVB_1722_DEBUG_ROUTER_TABLE
-  simple_printf("avb_1722_router_table_add_entry_simple called for sink_num %d, sink_local_id %d, key0 0x%x, key1 0x%x, link 0x%x\n"
-          ,sink_num, sink_local_id, key0, key1, link);
-#endif
 
   return;
 }

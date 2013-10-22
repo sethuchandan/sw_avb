@@ -1,8 +1,6 @@
 #include <xs1.h>
 #include "avb.h"
-#include "get_core_id_from_chanend.h"
 #include <print.h>
-
 
 void avb_get_control_packet(chanend c_rx,
                             unsigned int buf[],

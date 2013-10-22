@@ -162,7 +162,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/i2s}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/spdif}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/synth}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm_multi}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/media_fifos}&quot;"/>
@@ -284,7 +283,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/i2s}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/spdif}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/synth}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm_multi}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/media_fifos}&quot;"/>
@@ -412,7 +410,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/i2s}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/spdif}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/synth}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm_multi}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces/tdm}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/interfaces}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/module_avb_audio/src/media_fifos}&quot;"/>

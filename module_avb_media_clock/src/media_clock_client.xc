@@ -2,7 +2,6 @@
 #include <print.h>
 #include "media_clock_client.h"
 #include "media_clock_server.h"
-#include "get_core_id_from_chanend.h"
 
 void notify_buf_ctl_of_info(chanend buf_ctl, int fifo)
 {
@@ -46,9 +45,7 @@ void send_buf_ctl_info(chanend buf_ctl,
                        unsigned int wrptr,
                        timer tmr) {
   int thiscore_now;
-
   int core_id = get_local_tile_id();
-
   slave {
     buf_ctl :>  int;
     tmr :> thiscore_now;

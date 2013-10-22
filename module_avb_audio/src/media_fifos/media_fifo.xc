@@ -1,6 +1,5 @@
 #include <xs1.h>
 #include "media_fifo.h"
-#include "get_core_id_from_chanend.h"
 
 void media_ctl_register(chanend media_ctl,
                         int num_in,
@@ -10,9 +9,7 @@ void media_ctl_register(chanend media_ctl,
                         int clk_ctl_index)
 {
   unsigned core_id;
-
   core_id = get_local_tile_id();
-
   media_ctl <: core_id;
   media_ctl <: clk_ctl_index;
   media_ctl <: num_in;

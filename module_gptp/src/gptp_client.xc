@@ -1,7 +1,6 @@
 #include <xs1.h>
 #include "gptp.h"
 #include "gptp_cmd.h"
-#include "get_core_id_from_chanend.h"
 
 static void send_cmd(chanend c, char cmd)
 {
@@ -34,7 +33,6 @@ void ptp_get_requested_time_info(chanend c,
     c :> info.inv_ptp_adjust;
     c :> server_core_id;
   }
-
   if (server_core_id != get_local_tile_id())
   {
     info.local_ts = info.local_ts - (othercore_now-thiscore_now);
@@ -73,7 +71,6 @@ void ptp_get_requested_time_info_mod64_use_timer(chanend c,
     c :> info.inv_ptp_adjust;
     c :> server_core_id;
   }
-
   if (server_core_id != get_local_tile_id())
   {
     // 3 = protocol instruction cycle difference

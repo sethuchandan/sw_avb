@@ -2,7 +2,6 @@
 #include "gptp.h"
 #include "gptp_cmd.h"
 #include "ethernet_rx_client.h"
-#include "get_core_id_from_chanend.h"
 #include "mac_filter.h"
 #include "print.h"
 
@@ -36,7 +35,7 @@ extern unsigned ptp_path_delay;
 #define do_ptp_server(c_rx, c_tx, client, num_clients, ptp_timer, ptp_timeout)      \
   case ptp_recv_and_process_packet(c_rx, c_tx): \
        break;                     \
- case (int i=0;i<num_clients;i++) ptp_process_client_request(client[i], ptp_timer): \
+  case (int i=0;i<num_clients;i++) ptp_process_client_request(client[i], ptp_timer): \
        break; \
   case ptp_timer when timerafter(ptp_timeout) :> void: \
        ptp_periodic(c_tx, ptp_timeout); \
@@ -76,9 +75,7 @@ void ptp_recv_and_process_packet(chanend c_rx, chanend c_tx)
 static void ptp_give_requested_time_info(chanend c, timer ptp_timer)
 {
   int thiscore_now;
-
   unsigned core_id = get_local_tile_id();
-
   master {
     ptp_timer :> thiscore_now;
     c <: thiscore_now;
@@ -105,7 +102,6 @@ void ptp_process_client_request(chanend c, timer ptp_timer)
 {
   unsigned char cmd;
   unsigned thiscore_now;
-
   unsigned core_id = get_local_tile_id();
 
   cmd = inuchar(c);

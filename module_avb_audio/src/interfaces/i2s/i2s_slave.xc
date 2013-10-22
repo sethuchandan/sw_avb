@@ -3,8 +3,7 @@
 // University of Illinois/NCSA Open Source License posted in
 // LICENSE.txt and at <http://github.xcore.com/>
 
-#define USE_UNTESTED_I2S_SLAVE
-#ifdef USE_UNTESTED_I2S_SLAVE
+#if 0
 
 ///////////////////////////////////////////////////////////////////////////////
 //
