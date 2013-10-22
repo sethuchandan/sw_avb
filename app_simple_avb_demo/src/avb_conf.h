@@ -3,6 +3,18 @@
 
 #include "app_config.h"
 
+#define AVB_OUTPUT_FIFO_SUPPORT_PERFORMANCE_SQUEEZE 0
+#define AVB_TALKER_DEBUG_LOGIC 0
+#define AVB_TALKER_XSCOPE_PROBES 0
+#define AVB_LISTENER_XSCOPE_PROBES 0
+
+#if(AVB_AUDIO_IF_i2s)
+#define AVB_AUDIO_IF_SAMPLES_PER_PERIOD 2
+#endif
+#if(AVB_AUDIO_IF_tdm_multi)
+#define AVB_AUDIO_IF_SAMPLES_PER_PERIOD 8
+#endif
+
 /* Some of the configuration depends on the app_config.h file included above */
 
 /******** ETHERNET MAC CONFIGURATION PARAMETERS *************************************************/
@@ -24,7 +36,10 @@
 #if AVB_DEMO_ENABLE_TALKER
 
 /** The total number of AVB sources (streams that are to be transmitted). */
+#ifndef AVB_NUM_SOURCES
 #define AVB_NUM_SOURCES 1
+#endif
+
 /** The total number or Talker components (typically the number of
   * tasks running the  :c:func:`avb_1722_talker` function). */
 #define AVB_NUM_TALKER_UNITS 1
@@ -41,19 +56,27 @@
 #define AVB_NUM_TALKER_UNITS 0
 #define AVB_NUM_MEDIA_INPUTS 0
 #define AVB_1722_1_TALKER_ENABLED 0
+#define AVB_NUM_AUDIO_SDATA_IN 0
+#endif
 
+/** Number of serial audio data output lines. Derived by default, can be overridden from Makefile */
+#ifndef AVB_NUM_AUDIO_SDATA_IN
+#define AVB_NUM_AUDIO_SDATA_IN ((AVB_NUM_MEDIA_INPUTS+AVB_AUDIO_IF_SAMPLES_PER_PERIOD-1)/AVB_AUDIO_IF_SAMPLES_PER_PERIOD)
 #endif
 
 /* Listener configuration */
 #if AVB_DEMO_ENABLE_LISTENER
 
 /** The total number of AVB sinks (incoming streams that can be listened to) */
+#ifndef AVB_NUM_SINKS
 #define AVB_NUM_SINKS 1
+#endif
 /** The total number or listener components
   * (typically the number of tasks running the  :c:func:`avb_1722_listener` function) */
 #define AVB_NUM_LISTENER_UNITS 1
 /** The total number of media outputs (typically the number of I2S output channels). */
 #define AVB_NUM_MEDIA_OUTPUTS AVB_DEMO_NUM_CHANNELS
+
 /** Enable the 1722.1 Listener functionality */
 #define AVB_1722_1_LISTENER_ENABLED 1
 /** The maximum number of channels permitted per 1722 Listener stream */
@@ -65,12 +88,17 @@
 #define AVB_NUM_LISTENER_UNITS 0
 #define AVB_NUM_MEDIA_OUTPUTS 0
 #define AVB_1722_1_LISTENER_ENABLED 0
-
+#define AVB_NUM_AUDIO_SDATA_OUT 0
 #endif
 
+/** Number of serial audio data output lines. Derived by default, can be overridden from Makefile */
+#ifndef AVB_NUM_AUDIO_SDATA_OUT
+#define AVB_NUM_AUDIO_SDATA_OUT ((AVB_NUM_MEDIA_OUTPUTS+AVB_AUDIO_IF_SAMPLES_PER_PERIOD-1)/AVB_AUDIO_IF_SAMPLES_PER_PERIOD)
+#endif
 
 /** Enable combination of the media clock server and PTP server in a single core */
 #define COMBINE_MEDIA_CLOCK_AND_PTP 1
+#define COMBINE_MEDIA_CLOCK_AND_PLL_DRIVER 1
 
 /** Use 61883-6 audio format for 1722 streams */
 #define AVB_1722_FORMAT_61883_6 1
@@ -84,7 +112,13 @@
 #define AVB_NUM_MEDIA_CLOCKS 1
 
 /** The maximum sample rate in Hz of audio that is to be input or output */
+
+#if (AVB_NUM_MEDIA_OUTPUTS+AVB_NUM_MEDIA_OUTPUTS >= 32)
+#define AVB_MAX_AUDIO_SAMPLE_RATE 48000
+#else
 #define AVB_MAX_AUDIO_SAMPLE_RATE 96000
+#endif
+
 
 // Fix for Apple
 #define MEDIA_OUTPUT_FIFO_WORD_SIZE (AVB_MAX_AUDIO_SAMPLE_RATE/300)

@@ -4,9 +4,13 @@
 /***** APPLICATION CONFIGURATION ******/
 
 /** Global switch to enable or disable AVB Talker functionality in the demo */
+#ifndef AVB_DEMO_ENABLE_TALKER
 #define AVB_DEMO_ENABLE_TALKER 1
+#endif
 /** Global switch to enable or disable AVB Listener functionality in the demo */
+#ifndef AVB_DEMO_ENABLE_LISTENER
 #define AVB_DEMO_ENABLE_LISTENER 1
+#endif
 
 /***** PORTS *********/
 
@@ -27,7 +31,6 @@
 
 // If you are not using a standard dev board (e.g. creating an application for
 // your own board), you can update the port mappings here
-
 
 
 #define I2S_CLK_1 XS1_CLKBLK_3
@@ -93,7 +96,6 @@
 #define PORT_LEDS USER_PORT_LEDS
 
 #endif // !USING_XMOS_DEV_BOARD
-
 
 
 

@@ -27,4 +27,6 @@
 #define AVB_CONTROL_TILE        1
 
 /** Add sine wave synthesis from channels ``I2S_SYNTH_FROM*2`` upwards in the I2S component */
+#ifndef I2S_SYNTH_FROM
 #define I2S_SYNTH_FROM          1
+#endif
