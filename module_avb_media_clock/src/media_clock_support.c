@@ -174,36 +174,10 @@ unsigned int update_media_clock(chanend ptp_svr,
 
 			clock_info->ierror = ierror;
 
-<<<<<<< HEAD
-			// Kp = 32, Ki = 1 (originally)
-			// Kp = 4, Ki = 64 (modified)
-			// Now Kp = 32, Ki = 4
-			clock_info->wordlen = clock_info->wordlen - (perror / diff_local) * 32 - (ierror / diff_local) / 4;
-
-			// This is the version for CLOCK_RECOVERY_PERIOD = (1<<23)
-			// clock_info->wordlen = clock_info->wordlen - (perror / diff_local) * 128 - (ierror / diff_local) * 2;
-
-#ifdef USE_XSCOPE_PROBES
-			xscope_probe_data(2, (int) (perror >> 32));
-			xscope_probe_data(3, (int) (ierror >> 32));
-			xscope_probe_data(4, (int) (diff_local >> 32));
-			//xscope_probe_data(12, (int) (clock_info->stream_info2.presentation_ts - clock_info->stream_info1.presentation_ts));
-			//xscope_probe_data(13, (int) (clock_info->stream_info2.outgoing_ptp_ts - clock_info->stream_info1.outgoing_ptp_ts));
-#endif
-
-            // make info2 history
-			clock_info->stream_info1 = clock_info->stream_info2;
-			clock_info->stream_info2.valid = 0;
-
-		}
-		break;
-	}
-=======
 #if PLL_TYPE_CS2300
 			clock_info->wordlen = clock_info->wordlen - ((perror / diff_local) * 32) - ((ierror / diff_local) / 4);
 #else
 			clock_info->wordlen = clock_info->wordlen - ((perror / diff_local) * 80)/11 - ((ierror / diff_local) * 1) / 5;
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
 #endif
 
 			clock_info->stream_info1 = clock_info->stream_info2;

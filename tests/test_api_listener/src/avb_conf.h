@@ -12,13 +12,8 @@
 #define NUM_MII_TX_BUF 3
 #define ETHERNET_RX_HP_QUEUE 1
 #define MAX_ETHERNET_CLIENTS   5
-<<<<<<< HEAD:test_api_listener/src/avb_conf.h
-#ifndef MII_RX_BUFSIZE_HIGH_PRIORITY
-  #define MII_RX_BUFSIZE_HIGH_PRIORITY (700)    // override in Makefile for high channel configs
-#endif
-=======
+
 #define MII_RX_BUFSIZE_HIGH_PRIORITY (700)
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e:tests/test_api_listener/src/avb_conf.h
 #define MII_RX_BUFSIZE_LOW_PRIORITY (300)
 #define MII_TX_BUFSIZE_HIGH_PRIORITY (300)
 #define MII_TX_BUFSIZE_LOW_PRIORITY (200)

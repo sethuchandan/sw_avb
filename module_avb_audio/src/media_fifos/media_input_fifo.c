@@ -3,11 +3,7 @@
 #include "media_input_fifo.h"
 #include "hwlock.h"
 #include "avb_1722_def.h"
-<<<<<<< HEAD
 #include "xscope.h"
-=======
-#include <xscope.h>
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
 
 static hwlock_t enable_lock;
 unsigned int enable_request_state = 0;
@@ -118,16 +114,8 @@ void media_input_fifo_push_sample(media_input_fifo_t media_input_fifo0,
     int spaceLeft = ((int *) media_input_fifo->rdIndex) - wrIndex;
 
     spaceLeft &= (MEDIA_INPUT_FIFO_SAMPLE_FIFO_SIZE-1);
-<<<<<<< HEAD
-    
-#ifdef BUGFIX_12860
-    if ((!spaceLeft && (media_input_fifo->ptr != 0)) && (spaceLeft < packetSize)) return;
-#else
-=======
 
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
     if (spaceLeft && (spaceLeft < packetSize)) return;
-#endif
 
     wrIndex[0] = ts;
 #ifdef USE_XSCOPE_PROBES

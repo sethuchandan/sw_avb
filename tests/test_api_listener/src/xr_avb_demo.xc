@@ -226,15 +226,11 @@ int main(void) {
 
 		on stdcore[1]:
 		{
-<<<<<<< HEAD:test_api_listener/src/xr_avb_demo.xc
 
-            
-=======
             // Enable XScope printing
             xscope_register(0, XSCOPE_CONTINUOUS, "", XSCOPE_UINT, "");
             xscope_config_io(XSCOPE_IO_BASIC);
 
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e:tests/test_api_listener/src/xr_avb_demo.xc
 			media_clock_server(media_clock_ctl,
 					ptp_link[1],
 					buf_ctl,
@@ -287,14 +283,6 @@ int main(void) {
 		// Application threads
 		on stdcore[0]:
 		{
-<<<<<<< HEAD:test_api_listener/src/xr_avb_demo.xc
-            
-=======
-            // Enable XScope printing
-            xscope_register(0, XSCOPE_CONTINUOUS, "", XSCOPE_UINT, "");
-            xscope_config_io(XSCOPE_IO_BASIC);
-
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e:tests/test_api_listener/src/xr_avb_demo.xc
 			// First initialize avb higher level protocols
 			avb_init(media_ctl, listener_ctl, null, media_clock_ctl, rx_link[1+AVB_NUM_LISTENER_UNITS], tx_link[1], ptp_link[0]);
 

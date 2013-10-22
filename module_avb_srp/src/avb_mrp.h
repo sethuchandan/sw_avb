@@ -28,13 +28,9 @@
 #ifndef MRP_MAX_ATTRS
 // There are 3 attributes per stream (talker_advertise, talker_failed
 // and listener). Therefore the number of attributes needed is:
-<<<<<<< HEAD
-// (AVB_NUM_SOURCES * 3) + (AVB_NUM_SINKS * 3) + (nDomains=1) + AVB_MAX_NUM_VLAN + AVB_MAX_MMRP_GROUPS
-#define MRP_MAX_ATTRS 60
-=======
 // (nTalkers * 3) + (nListeners * 3) + (nDomains=1) + AVB_MAX_NUM_VLAN + AVB_MAX_MMRP_GROUPS
 #define MRP_MAX_ATTRS ((3*(AVB_NUM_SOURCES)) + (3*(AVB_NUM_SINKS)) + 1 + (AVB_MAX_NUM_VLAN))
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
+
 #endif
 
 #define MRP_FULL_PARTICIPANT 1

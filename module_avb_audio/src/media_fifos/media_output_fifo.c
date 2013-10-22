@@ -178,12 +178,7 @@ media_output_fifo_maintain(media_output_fifo_t s0,
         // set the wrptr so that the fifo size is 1/2 of the buffer size
         int buf_len = (END_OF_FIFO(s) - START_OF_FIFO(s));
         unsigned int *new_wrptr;
-<<<<<<< HEAD
-        
-        //TODO: TG why the while?
-=======
 
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
         new_wrptr = s->dptr + ((buf_len>>1));
         while (new_wrptr >= END_OF_FIFO(s))
           new_wrptr -= buf_len;
@@ -268,7 +263,6 @@ media_output_fifo_strided_push(media_output_fifo_t s0,
 
     if (new_wrptr == END_OF_FIFO(s)) new_wrptr = START_OF_FIFO(s);
 
-<<<<<<< HEAD
     if (new_wrptr != s->dptr) {
       *wrptr = sample;
       wrptr = new_wrptr;
@@ -329,8 +323,6 @@ media_output_fifo_strided_push_saf16(media_output_fifo_t s0,
 
     if (new_wrptr == END_OF_FIFO(s)) new_wrptr = START_OF_FIFO(s);
 
-=======
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
     if (new_wrptr != s->dptr) {
       *wrptr = sample;
       wrptr = new_wrptr;

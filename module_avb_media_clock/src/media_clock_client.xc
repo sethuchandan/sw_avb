@@ -46,11 +46,9 @@ void send_buf_ctl_info(chanend buf_ctl,
                        unsigned int wrptr,
                        timer tmr) {
   int thiscore_now;
-<<<<<<< HEAD
-  int core_id = get_core_id_from_chanend(buf_ctl);
-=======
+
   int core_id = get_local_tile_id();
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
+
   slave {
     buf_ctl :>  int;
     tmr :> thiscore_now;

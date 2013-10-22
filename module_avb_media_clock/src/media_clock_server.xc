@@ -25,12 +25,8 @@
 #define MIN_FILL_LEVEL 5
 #define MAX_SAMPLES_PER_1722_PACKET 12
 
-<<<<<<< HEAD
 
-static media_clock_t media_clocks[MAX_NUM_MEDIA_CLOCKS];
-=======
 static media_clock_t media_clocks[AVB_NUM_MEDIA_CLOCKS];
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
 
 void clk_ctl_set_rate(chanend clk_ctl, int wordLength)
 {
@@ -153,12 +149,8 @@ static void manage_buffer(buf_info_t &b,
     buf_ctl :> wrptr;
     buf_ctl :> server_core_id;
   }
-<<<<<<< HEAD
 
-  if (server_core_id != get_core_id_from_chanend(ptp_svr))
-=======
   if (server_core_id != get_local_tile_id())
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
   {
 	  outgoing_timestamp_local = outgoing_timestamp_local - (othercore_now - thiscore_now);
   }
@@ -193,47 +185,14 @@ static void manage_buffer(buf_info_t &b,
       // clock not locked yet
       buf_ctl <: b.fifo;
       buf_ctl <: BUF_CTL_ACK;
-<<<<<<< HEAD
-      inct(buf_ctl);  
-#ifdef USE_XSCOPE_PROBES
-     xscope_probe(1);  // stop 0
-#endif
-     return;
-  }
 
-  //TODO: Remove this unreachable code
-  if (media_clocks[b.media_clock].clock_type == FIFO_LENGTH) {
-	  if (b.lock_count == 0) {
-	        buf_ctl <: b.fifo;
-	        buf_ctl <: BUF_CTL_ADJUST_FILL;
-	        buf_ctl <: 0;
-	        inct(buf_ctl);
-	        b.lock_count = 1;
-	  } else {
-	      buf_ctl <: b.fifo;
-	      buf_ctl <: BUF_CTL_ACK;
-	      inct(buf_ctl);
-	  }
-	  return;
-=======
       inct(buf_ctl);
       return;
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
   }
 
   sample_diff = diff / ((int) ((wordLength*10) >> WC_FRACTIONAL_BITS));
 
-<<<<<<< HEAD
-#ifdef USE_XSCOPE_PROBES
-			//xscope_probe_data(8, (unsigned int) diff);
-			xscope_probe_data(5, (unsigned int) sample_diff);
-			xscope_probe_data(6, (unsigned int) fill);
-#endif
-
-  if (locked && b.lock_count < LOCK_COUNT_THRESHOLD) {   
-=======
   if (locked && b.lock_count < LOCK_COUNT_THRESHOLD) {
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
     b.lock_count++;
   }
 
@@ -417,41 +376,18 @@ void media_clock_server(chanend media_clock_ctl,
 
   tmr :> clk_time;
 
-<<<<<<< HEAD
-  clk_time += CLOCK_RECOVERY_PERIOD;  
 
-=======
   clk_time += CLOCK_RECOVERY_PERIOD;
 
   for (int i=0;i<AVB_NUM_MEDIA_CLOCKS;i++)
     init_media_clock(media_clocks[i], tmr, p_fs[i]);
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
+
 
   while (1) {
     #pragma ordered
     select
       {
-<<<<<<< HEAD
-      case tmr when timerafter(clk_time) :> int _:
-        for (int i=0;i<num_clks;i++) {
 
-          if (media_clocks[i].active) {
-            media_clocks[i].wordLength = 
-              update_media_clock(ptp_svr, 
-                                 i,
-                                 media_clocks[i],
-                                 clk_time,
-                                 CLOCK_RECOVERY_PERIOD);
-
-#ifdef USE_XSCOPE_PROBES
-			xscope_probe_data(7, (unsigned) media_clocks[i].wordLength);
-#endif
-            for (int j=0;j<num_clk_ctl;j++) {
-              if (registered[j]==i)
-                clk_ctl_set_rate(clk_ctl[j], media_clocks[i].wordLength);   
-            }
-          }
-=======
       case (int i=0;i<num_clks;i++)
         clk_timers[i] when timerafter(media_clocks[i].next_event) :> int now:
 #if PLL_OUTPUT_TIMING_CHECK
@@ -460,7 +396,6 @@ void media_clock_server(chanend media_clock_ctl,
           count++;
           if (x==3)
             printstrln("ERROR: failed to drive PLL freq signal in time");
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
         }
 #endif
         do_media_clock_output(media_clocks[i], p_fs[i]);

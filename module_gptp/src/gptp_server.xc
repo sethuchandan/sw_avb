@@ -2,12 +2,8 @@
 #include "gptp.h"
 #include "gptp_cmd.h"
 #include "ethernet_rx_client.h"
-<<<<<<< HEAD
-#include "mac_custom_filter.h"
 #include "get_core_id_from_chanend.h"
-=======
 #include "mac_filter.h"
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
 #include "print.h"
 
 /* These functions are the workhorse functions for the actual protocol.
@@ -80,11 +76,9 @@ void ptp_recv_and_process_packet(chanend c_rx, chanend c_tx)
 static void ptp_give_requested_time_info(chanend c, timer ptp_timer)
 {
   int thiscore_now;
-<<<<<<< HEAD
-  unsigned core_id = get_core_id_from_chanend(c);
-=======
+
   unsigned core_id = get_local_tile_id();
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
+
   master {
     ptp_timer :> thiscore_now;
     c <: thiscore_now;
@@ -111,11 +105,8 @@ void ptp_process_client_request(chanend c, timer ptp_timer)
 {
   unsigned char cmd;
   unsigned thiscore_now;
-<<<<<<< HEAD
-  unsigned core_id = get_core_id_from_chanend(c);
-=======
+
   unsigned core_id = get_local_tile_id();
->>>>>>> c9571f7ba9113648c12534912010302e18e3892e
 
   cmd = inuchar(c);
   (void) inuchar(c);
