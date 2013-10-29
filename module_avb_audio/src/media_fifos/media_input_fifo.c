@@ -20,8 +20,8 @@ symbols:
 
 ififo structure (for 61883-6)
                 START                                                                 END
-				|tdssssssss_tdssssssss_tdssssssss_tdssssssss_tdssssssss.....tdssssssss|
-				            ^                     ^ ^
+                |tdssssssss_tdssssssss_tdssssssss_tdssssssss_tdssssssss.....tdssssssss|
+                            ^                     ^ ^
 ififo commms
   A: push                   startIndex (w)
   T: release                                      rdIndex (w)
