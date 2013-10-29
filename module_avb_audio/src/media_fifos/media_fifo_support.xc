@@ -1,6 +1,6 @@
 /*
- * @ModuleName Audio ADC FIFO Module.
- * @Description: Implements tasks to receive samples from audio Interface and stuff them in the ififo
+ * @ModuleName Media FIFO support
+ * @Description: Interface tasks to speedup commuication between fifos and audio interface
  *
  *
  */
@@ -14,80 +14,13 @@
 #include "media_fifo.h"
 #include "simple_printf.h"
 
-// receive samples from audio Interface and push them in the ififo
-
-void media_input_fifo_stuffer(
-#ifdef AVB_INPUT_FIFO_STREAMING_CHAN
-        chanend ?c_sync,
-#else
-        streaming chanend ?c_sync,
-#endif
-		media_input_fifo_t ?input_fifos[],
-		unsigned num_chan_in) {
-	unsigned adc_buffer_address;
-	unsigned timestamp;
-	unsigned sample;
-	unsigned int active_fifos;
-
-	while(1) {
-#ifdef AVB_INPUT_FIFO_STREAMING_CHAN
-		slave {
-	 	  c_sync :> adc_buffer_address;
-		  c_sync :> timestamp;
-		};
-#else
-	 	c_sync :> adc_buffer_address;
-		c_sync :> timestamp;
-#endif
-		active_fifos = media_input_fifo_enable_req_state();
-
-		for(int i=0; i<num_chan_in; i++) {
-			if (active_fifos & (1 << (i))) {
-				asm("ldw %0, %1[%2]":"=r"(sample):"r"(adc_buffer_address),"r"(i));
-				media_input_fifo_push_sample(input_fifos[i], sample, timestamp);
-				if(i==0) {
-					//xscope_int(2, sample);
-				}
-			} else {
-				media_input_fifo_flush(input_fifos[i]);
-			}
-		}
-        //xscope_int(1, timestamp);
-	}
-};
-
-void media_input_fifo_stuffer_chan(
-		streaming chanend ?c_samples_from_adc,
-		media_input_fifo_t ?input_fifos[],
-		unsigned num_chan_in) {
-
-	unsigned timestamp;
-	unsigned sample;
-	unsigned int active_fifos;
-
-	while(1) {
-		c_samples_from_adc :> timestamp;
-		active_fifos = media_input_fifo_enable_req_state();
-
-		for(int i=0; i<num_chan_in; i++) {
-			c_samples_from_adc :> sample;
-			if(i==0) {
-#if AVB_TALKER_XSCOPE_PROBES
-				xscope_int(2, sample);
-#endif
-			}
-
-			if (active_fifos & (1 << (i))) {
-				media_input_fifo_push_sample(input_fifos[i], sample, timestamp);
-			} else {
-				media_input_fifo_flush(input_fifos[i]);
-			}
-		}
-#if AVB_TALKER_XSCOPE_PROBES
-        xscope_int(1, timestamp);
-#endif
-	}
-};
+/**
+ *  \brief Interface task between ififo/ofifo and an audio interface
+ *
+ *  Especially useful for TDM (4 or 8 channels per dataline)
+ *  Where this task is essential to meet the timing
+ *  by getting a subset of samples for each sub-slot
+ */
 
 void media_input_output_fifo_support_upto_16ch(streaming chanend samples_out,
 			streaming chanend c_samples_from_adc,
