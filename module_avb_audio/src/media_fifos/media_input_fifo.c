@@ -5,6 +5,7 @@
 #include "avb_conf.h"
 #include <xscope.h>
 #include <assert.h>
+#include "simple_printf.h"
 
 /* ififo structure and communication
 symbols:

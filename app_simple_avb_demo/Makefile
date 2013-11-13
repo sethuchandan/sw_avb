@@ -31,7 +31,7 @@ OPTIONAL_HEADERS = avb_app_board_config.h
 # If the variable XCC_MAP_FLAGS is set it overrides the flags passed to 
 # xcc for the final link (mapping) stage.
 
-XCC_FLAGS = -O2 -save-temps -g -report -Xmapper --map -Xmapper MAPFILE
+XCC_COMMON_FLAGS = -O2 -save-temps -g -report -Xmapper --map -Xmapper MAPFILE
 
 ###########################################################################
 # Settings derived from configuration names
@@ -53,7 +53,7 @@ AUDIO_INTERFACE = i2s
 endif
 
 #hack
-XCC_FLAGS += -DAVB_AUDIO_IF_$(AUDIO_INTERFACE)=1 -DI2S_SYNTH_FROM=1
+XCC_COMMON_FLAGS += -DAVB_AUDIO_IF_$(AUDIO_INTERFACE)=1 -DI2S_SYNTH_FROM=1
 
 ###########################################################################
 #############################  Configurations #############################
@@ -67,39 +67,39 @@ XCC_FLAGS += -DAVB_AUDIO_IF_$(AUDIO_INTERFACE)=1 -DI2S_SYNTH_FROM=1
 # $Zch: number of channels
 # $if:	optional: audio interface other than i2s
 
-XCC_FLAGS_1t8s16ch_1l8s16ch_TDM = $(XCC_FLAGS) -DAVB_NUM_SINKS=8 -DAVB_NUM_SOURCES=8 -DAVB_DEMO_NUM_CHANNELS=16
+XCC_FLAGS_1t8s16ch_1l8s16ch_TDM = $(XCC_COMMON_FLAGS) -DAVB_NUM_SINKS=8 -DAVB_NUM_SOURCES=8 -DAVB_DEMO_NUM_CHANNELS=16
 
-XCC_FLAGS_1t4s16ch_1l4s16ch_TDM = $(XCC_FLAGS) -DAVB_NUM_SINKS=4 -DAVB_NUM_SOURCES=4 -DAVB_DEMO_NUM_CHANNELS=16
+XCC_FLAGS_1t4s16ch_1l4s16ch_TDM = $(XCC_COMMON_FLAGS) -DAVB_NUM_SINKS=4 -DAVB_NUM_SOURCES=4 -DAVB_DEMO_NUM_CHANNELS=16
 
-XCC_FLAGS_1t2s16ch_1l2s16ch_TDM = $(XCC_FLAGS) -DAVB_NUM_SINKS=2 -DAVB_NUM_SOURCES=2 -DAVB_DEMO_NUM_CHANNELS=16
+XCC_FLAGS_1t2s16ch_1l2s16ch_TDM = $(XCC_COMMON_FLAGS) -DAVB_NUM_SINKS=2 -DAVB_NUM_SOURCES=2 -DAVB_DEMO_NUM_CHANNELS=16
 
-XCC_FLAGS_1t1s16ch_1l1s16ch_TDM = $(XCC_FLAGS) -DAVB_NUM_SINKS=1 -DAVB_NUM_SOURCES=1 -DAVB_DEMO_NUM_CHANNELS=16
+XCC_FLAGS_1t1s16ch_1l1s16ch_TDM = $(XCC_COMMON_FLAGS) -DAVB_NUM_SINKS=1 -DAVB_NUM_SOURCES=1 -DAVB_DEMO_NUM_CHANNELS=16
 
-XCC_FLAGS_1t1s16ch_TDM = $(XCC_FLAGS) -DAVB_DEMO_ENABLE_LISTENER=0 -DAVB_NUM_SOURCES=1 -DAVB_DEMO_NUM_CHANNELS=16
+XCC_FLAGS_1t1s16ch_TDM = $(XCC_COMMON_FLAGS) -DAVB_DEMO_ENABLE_LISTENER=0 -DAVB_NUM_SOURCES=1 -DAVB_DEMO_NUM_CHANNELS=16
 
-XCC_FLAGS_1t1s8ch_TDM = $(XCC_FLAGS) -DAVB_DEMO_ENABLE_TALKER=0 -DAVB_NUM_SINKS=1 -DAVB_DEMO_NUM_CHANNELS=16
+XCC_FLAGS_1t1s8ch_TDM = $(XCC_COMMON_FLAGS) -DAVB_DEMO_ENABLE_TALKER=0 -DAVB_NUM_SINKS=1 -DAVB_DEMO_NUM_CHANNELS=16
 
-XCC_FLAGS_1t1s8ch_1l1s8ch_TDM = $(XCC_FLAGS) -DAVB_NUM_SINKS=1 -DAVB_NUM_SOURCES=1 -DAVB_DEMO_NUM_CHANNELS=8
+XCC_FLAGS_1t1s8ch_1l1s8ch_TDM = $(XCC_COMMON_FLAGS) -DAVB_NUM_SINKS=1 -DAVB_NUM_SOURCES=1 -DAVB_DEMO_NUM_CHANNELS=8
 
-XCC_FLAGS_1t2s8ch_1l2s8ch_TDM = $(XCC_FLAGS) -DAVB_NUM_SINKS=2 -DAVB_NUM_SOURCES=2 -DAVB_DEMO_NUM_CHANNELS=8
+XCC_FLAGS_1t2s8ch_1l2s8ch_TDM = $(XCC_COMMON_FLAGS) -DAVB_NUM_SINKS=2 -DAVB_NUM_SOURCES=2 -DAVB_DEMO_NUM_CHANNELS=8
 
 
 # This is for the Testbench Endpoint. I2S I/O of actual audio. The remaining channels are computed
-XCC_FLAGS_1t8s16ch_1l8s16ch_I2S = $(XCC_FLAGS) -DAVB_NUM_SINKS=8 -DAVB_NUM_SOURCES=8 -DAVB_DEMO_NUM_CHANNELS=16 
+XCC_FLAGS_1t8s16ch_1l8s16ch_I2S = $(XCC_COMMON_FLAGS) -DAVB_NUM_SINKS=8 -DAVB_NUM_SOURCES=8 -DAVB_DEMO_NUM_CHANNELS=16 
 #force to fit in the I/O budget
 XCC_FLAGS_1t8s16ch_1l8s16ch_I2S += -DAVB_NUM_AUDIO_SDATA_IN=4 -DAVB_NUM_AUDIO_SDATA_OUT=4  
 
 # This is for the Testbench Endpoint. I2S I/O of actual audio. The remaining channels are computed
-XCC_FLAGS_1t4s8ch_1l4s8ch_I2S = $(XCC_FLAGS) -DAVB_NUM_SINKS=4 -DAVB_NUM_SOURCES=4 -DAVB_DEMO_NUM_CHANNELS=8
+XCC_FLAGS_1t4s8ch_1l4s8ch_I2S = $(XCC_COMMON_FLAGS) -DAVB_NUM_SINKS=4 -DAVB_NUM_SOURCES=4 -DAVB_DEMO_NUM_CHANNELS=8
 
 
-XCC_FLAGS_main.xc = $(XCC_FLAGS) -falways-inline
+XCC_FLAGS_main.xc = $(XCC_COMMON_FLAGS) -falways-inline
 
 
 # The USED_MODULES variable lists other module used by the application. 
 
-USED_MODULES = module_avb_1722 module_avb_1722_maap module_avb_srp module_avb_media_clock module_avb_audio module_random
-USED_MODULES += module_avb module_avb_util module_gptp module_ethernet module_ethernet_board_support module_avb_1722_1
+USED_MODULES = module_avb_1722 module_avb_1722_maap module_avb_srp module_avb_media_clock module_avb_audio 
+USED_MODULES += module_avb module_avb_util module_random module_gptp module_ethernet module_ethernet_board_support module_avb_1722_1
 
 #Add audio interfaces from module_avb_audio
 USED_AUDIO_INTERFACES = $(AUDIO_INTERFACE)
